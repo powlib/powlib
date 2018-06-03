@@ -118,8 +118,8 @@ endmodule
 
 module powlib_spram(wridx,wrdata,wrvld,rdidx,rddata,clk);
 
-  parameter integer            W = 16;                  // Width
-  parameter integer            D = 8;                   // Depth
+  parameter integer            W    = 16;               // Width
+  parameter integer            D    = 8;                // Depth
   parameter reg     [W*D-1:0]  INIT = 0;                // Initializes the memory
   parameter integer            WIDX = powlib_clogb2(D); // Width of index
   input     wire    [WIDX-1:0] wridx;                   // Write index 
