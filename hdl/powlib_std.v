@@ -1,17 +1,16 @@
-`include "powlib_std.vh"
 `timescale 1ns / 1ps
 
 module powlib_flipflop(d,q,clk,rst,vld);
 
-  parameter integer         W    = 1;    // Width
-  parameter reg     [W-1:0] INIT = 0;    // Initial value
-  parameter reg             EAR  = 0;    // Enable asynchronous reset
-  parameter reg             EVLD = 0;    // Enable valid  
-  input     wire    [W-1:0] d;           // Input data
-  input     wire            vld;         // Valid  
-  input     wire            clk;         // Clock
-  input     wire            rst;         // Reset
-  output    reg     [W-1:0] q    = INIT; // Output data
+  parameter              W    = 1;    // Width
+  parameter      [W-1:0] INIT = 0;    // Initial value
+  parameter              EAR  = 0;    // Enable asynchronous reset
+  parameter              EVLD = 0;    // Enable valid  
+  input     wire [W-1:0] d;           // Input data
+  input     wire         vld;         // Valid  
+  input     wire         clk;         // Clock
+  input     wire         rst;         // Reset
+  output    reg  [W-1:0] q    = INIT; // Output data
   
             wire            vld0 = vld==1 || EVLD==0;
 
@@ -37,20 +36,20 @@ endmodule
 
 module powlib_ffsync(d,q,aclk,bclk,arst,brst,vld);
 
-  parameter integer         W    = 1;    // Width
-  parameter reg     [W-1:0] INIT = 0;    // Initial value
-  parameter reg             EAR  = 0;    // Enable asynchronous reset
-  parameter reg             EVLD = 0;    // Enable valid
-  parameter integer         S    = 2;    // Number of B clk domain stages
-  input     wire    [W-1:0] d;           // Input data
-  input     wire            vld;         // Valid  
-  input     wire            aclk, bclk;  // Clock
-  input     wire            arst, brst;  // Reset
-  output    wire    [W-1:0] q;           // Output data  
+  parameter                W    = 1;    // Width
+  parameter        [W-1:0] INIT = 0;    // Initial value
+  parameter                EAR  = 0;    // Enable asynchronous reset
+  parameter                EVLD = 0;    // Enable valid
+  parameter                S    = 2;    // Number of B clk domain stages
+  input     wire   [W-1:0] d;           // Input data
+  input     wire           vld;         // Valid  
+  input     wire           aclk, bclk;  // Clock
+  input     wire           arst, brst;  // Reset
+  output    wire   [W-1:0] q;           // Output data  
   
-            genvar          i;
-            wire    [W-1:0] ds [0:S];
-            wire    [W-1:0] aq;
+            genvar         i;
+            wire   [W-1:0] ds [0:S];
+            wire   [W-1:0] aq;
   
   powlib_flipflop #(.W(W),.INIT(INIT),.EAR(EAR),.EVLD(EVLD))  aff (.d(d),.q(aq),.clk(aclk),.rst(arst),.vld(vld));
   
@@ -69,16 +68,16 @@ endmodule
 
 module powlib_pipe(d,q,clk,rst,vld);
 
-  parameter integer         W    = 1;    // Width
-  parameter reg     [W-1:0] INIT = 0;    // Initial value
-  parameter reg             EAR  = 0;    // Enable asynchronous reset
-  parameter reg             EVLD = 0;    // Enable valid
-  parameter integer         S    = 4;    // Number of stages
-  input     wire    [W-1:0] d;           // Input data
-  output    wire    [W-1:0] q;           // Output data
-  input     wire            clk;         // Clock
-  input     wire            rst;         // Reset
-  input     wire            vld;         // Valid
+  parameter              W    = 1;    // Width
+  parameter      [W-1:0] INIT = 0;    // Initial value
+  parameter              EAR  = 0;    // Enable asynchronous reset
+  parameter              EVLD = 0;    // Enable valid
+  parameter              S    = 4;    // Number of stages
+  input     wire [W-1:0] d;           // Input data
+  output    wire [W-1:0] q;           // Output data
+  input     wire         clk;         // Clock
+  input     wire         rst;         // Reset
+  input     wire         vld;         // Valid
   
   if (S<1) begin
     assign q = d;
@@ -90,20 +89,20 @@ endmodule
 
 module powlib_cntr(cntr,nval,adv,ld,clr,clk,rst);
   
-  parameter integer        W    = 32; // Width
-  parameter reg    [W-1:0] X    = 1;  // Increment / decrement value
-  parameter reg    [W-1:0] INIT = 0;  // Initialize value
-  parameter reg            ELD  = 1;  // Enable load feature
-  parameter reg            EAR  = 0;  // Enable asynchronous reset feature
-  output    wire   [W-1:0] cntr;      // Current counter value
-  input     wire   [W-1:0] nval;      // New value
-  input     wire           adv;       // Advances the counter
-  input     wire           ld;        // Loads a new value into counter
-  input     wire           clr;       // Clears the counter to INIT
-  input     wire           clk;       // Clock
-  input     wire           rst;       // Reset
+  parameter              W    = 32; // Width
+  parameter      [W-1:0] X    = 1;  // Increment / decrement value
+  parameter      [W-1:0] INIT = 0;  // Initialize value
+  parameter              ELD  = 1;  // Enable load feature
+  parameter              EAR  = 0;  // Enable asynchronous reset feature
+  output    wire [W-1:0] cntr;      // Current counter value
+  input     wire [W-1:0] nval;      // New value
+  input     wire         adv;       // Advances the counter
+  input     wire         ld;        // Loads a new value into counter
+  input     wire         clr;       // Clears the counter to INIT
+  input     wire         clk;       // Clock
+  input     wire         rst;       // Reset
   
-            wire           ld0 = ld && ELD;
+            wire         ld0 = ld && (ELD!=0);
   
   powlib_flipflop #(.W(W),.INIT(INIT),.EAR(EAR),.EVLD(1)) cntr_inst (
     .d((clr) ? INIT   : 
@@ -116,15 +115,19 @@ module powlib_cntr(cntr,nval,adv,ld,clr,clk,rst);
   
 endmodule
 
-module powlib_spram(wridx,wrdata,wrvld,rdidx,rddata,clk);
+module powlib_spram(wridx,wrdata,wrvld,wrbe,rdidx,rddata,clk);
 
-  parameter integer            W    = 16;               // Width
-  parameter integer            D    = 8;                // Depth
-  parameter reg     [W*D-1:0]  INIT = 0;                // Initializes the memory
-  parameter integer            WIDX = powlib_clogb2(D); // Width of index
+`include "powlib_std.vh"
+
+  parameter                    W    = 16;               // Width
+  parameter                    D    = 8;                // Depth
+  parameter         [W*D-1:0]  INIT = 0;                // Initializes the memory
+  parameter                    WIDX = powlib_clogb2(D); // Width of index
+  parameter                    EWBE = 0;                // Enable write byte enable
   input     wire    [WIDX-1:0] wridx;                   // Write index 
   input     wire    [W-1:0]    wrdata;                  // Write data
   input     wire               wrvld;                   // Write data valid
+  input     wire    [W-1:0]    wrbe;                    // Write bit enable
   input     wire    [WIDX-1:0] rdidx;                   // Read index
   output    wire    [W-1:0]    rddata;                  // Read data
   input     wire               clk;                     // Clock
@@ -139,9 +142,17 @@ module powlib_spram(wridx,wrdata,wrvld,rdidx,rddata,clk);
     end    
   end
   
-  always @(posedge clk) begin           
-    if (wrvld==1) begin
-      mem[wridx] <= wrdata;
+  always @(posedge clk) begin               
+    if (EWBE==0) begin
+      if (wrvld==1) begin
+        mem[wridx] <= wrdata;
+      end
+    end else begin
+      for (i=0; i<W; i=i+1) begin
+        if (wrbe[i]==1) begin
+          mem[wridx][i] <= wrdata[i];
+        end
+      end
     end
   end
 

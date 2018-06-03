@@ -1,7 +1,8 @@
-`include "powlib_std.vh"
 `timescale 1ns / 1ps
 
 module powlib_sfifo(wrdata,wrvld,wrrdy,rddata,rdvld,rdrdy,clk,rst);
+
+`include "powlib_std.vh"
 
   parameter  integer            W = 16;
   parameter  integer            D = 8;
