@@ -1,2 +1,4 @@
 *.ignore
 *sim_build
+*.xml
+*.pyc
