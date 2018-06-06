@@ -6,13 +6,16 @@ PWD=$(shell pwd)
 POWLIB=$(PWD)/../..
 COCOTB=$(POWLIB)/cocotb/
 SIM=icarus
+CUSTOM_SIM_DEPS = $(shell find $(POWLIB)/sim/ -name "*.py")
+
+$(info [$(CUSTOM_SIM_DEPS)])
 
 ifeq ($(OS),Msys)
 WPWD=$(shell sh -c 'pwd -W')
-PYTHONPATH := $(PWD)/../cosim;$(PYTHONPATH)
+PYTHONPATH := $(POWLIB)/sim/powlib;$(PYTHONPATH)
 else
 WPWD=$(shell pwd)
-PYTHONPATH := $(PWD)/../cosim:$(PYTHONPATH)
+PYTHONPATH := $(POWLIB)/sim/powlib:$(PYTHONPATH)
 endif
 
 ifeq ($(TOPLEVEL_LANG),verilog)
