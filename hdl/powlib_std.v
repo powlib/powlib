@@ -12,7 +12,7 @@ module powlib_flipflop(d,q,clk,rst,vld);
   input     wire         rst;         // Reset
   output    reg  [W-1:0] q    = INIT; // Output data
   
-            wire            vld0 = vld==1 || EVLD==0;
+            wire         vld0 = vld==1 || EVLD==0;
 
   if (EAR==0) begin
     always @(posedge clk) begin

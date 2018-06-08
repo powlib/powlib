@@ -115,6 +115,14 @@ class FFSyncDriver(FlipflopDriver):
         self.__bclock = bclock
 
     @property
+    def S(self):
+        '''
+        Gets the number of b stages.
+        '''
+        return int(self.entity.S.value)
+
+
+    @property
     def aclock(self):
         '''
         Basically allows the user to acquire aclock, without
