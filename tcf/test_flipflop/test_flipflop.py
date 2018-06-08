@@ -4,6 +4,10 @@ from powlib.drivers import FlipflopDriver
 from powlib.utils   import TestEnvironment
 from random         import randint
 
+test_enables = {'sequential' : True,
+                'valid'      : True,
+                'random'     : True}
+
 @coroutine
 def perform_setup(dut):
     '''
@@ -26,7 +30,7 @@ def perform_setup(dut):
     # Return the test environment.
     raise ReturnValue(te)
 
-@test(skip = False)
+@test(skip = not test_enables['sequential'])
 def test_sequential(dut):
     '''
     Simply writes data sequentially into the flip flop
@@ -53,7 +57,7 @@ def test_sequential(dut):
     te.log.info("Test completed successfully...")
     raise TestSuccess()
 
-@test(skip = False)
+@test(skip = not test_enables['valid'])
 def test_valid(dut):
     '''
     Checks to see if the valid flag is working properly.
@@ -88,10 +92,12 @@ def test_valid(dut):
     te.log.info("Test completed successfully...")
     raise TestSuccess()
 
-@test(skip = False)
+@test(skip = not test_enables['random'])
 def test_random(dut):
     '''
-    Verifies the flip flop with random data.
+    Verifies the flip flop with random data. This test
+    also ensures a clock cycle isn't wasted between
+    transactions.
     '''
 
     # Prepare test environment.
@@ -104,15 +110,24 @@ def test_random(dut):
     # Perform the test.
     te.log.info("Performing the test...")
 
+    prev_d = None
     for each_trans in range(total):
 
         d = randint(0,total-1) 
 
-        yield te.ffd.write(d=d)
-        q = yield te.ffd.read()
+        wr = fork(te.ffd.write(d=d))
+        rd = fork (te.ffd.read())
 
-        te.log.info("Wrote <{}>, Read <{}>...".format(d,q))
-        if d!=q: raise TestFailure()
+        yield wr.join()
+        yield rd.join()
+
+        q = rd.retval
+        
+        if prev_d is not None:
+            te.log.info("Previous <{}>, Read <{}>...".format(prev_d,q))
+            if prev_d!=q: raise TestFailure()
+
+        prev_d = d
 
     te.log.info("Test completed successfully...")
     raise TestSuccess()
