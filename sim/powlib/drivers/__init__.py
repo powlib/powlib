@@ -1,5 +1,6 @@
 from cocotb                 import coroutine
 from cocotb.bus             import Bus
+from cocotb.result          import ReturnValue
 from cocotb.triggers        import RisingEdge, ReadOnly, Lock
 from cocotb.drivers         import BusDriver as OriginalBusDriver
 
@@ -54,18 +55,23 @@ class FlipflopDriver(BusDriver):
     @coroutine
     def write(self, d=0, vld=1):
         '''
-        Writes new data to the flip flop.
+        Writes new data to the flip flop and then waits 
+        untils the data is registered.
         '''
 
-        self.bus.d         <= d
-        self.bus.vld       <= vld
-
+        self.bus.d.value   = d
+        self.bus.vld.value = vld
         yield ReadOnly()
-        yield RisingEdge(self.clock)
+        yield RisingEdge(self.clock)     
 
+    @coroutine
     def read(self):
         '''
-        Read the output of the flip flop.
+        Reads the output of the flip flop and then waits 
+        until the rise of the next clock cycle.
         '''
 
-        return int(self.bus.q.value)
+        yield ReadOnly()
+        value = int(self.bus.q.value)
+        yield RisingEdge(self.clock)
+        raise ReturnValue(value)

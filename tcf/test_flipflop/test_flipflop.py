@@ -1,9 +1,5 @@
-import random
-import logging
-
-from cocotb import test, coroutine
-from cocotb.result import TestFailure, TestSuccess, ReturnValue
-
+from cocotb         import test, coroutine, fork
+from cocotb.result  import TestFailure, TestSuccess, ReturnValue
 from powlib.drivers import FlipflopDriver
 from powlib.utils   import TestEnvironment
 
@@ -30,26 +26,27 @@ def perform_setup(dut):
     raise ReturnValue(te)
 
 @test(skip = False)
-def test_flipflop_0(dut):
+def test_sequential(dut):
     '''
-    Description
-        Simply writes data sequentially into the flip flop
-        and checks for the correct output.
+    Simply writes data sequentially into the flip flop
+    and checks for the correct output.
     '''
 
     # Prepare test environment.
     te = yield perform_setup(dut)
 
-
     width = te.ffd.W
     total = 1<<width
     te.log.info("Total transactions <{}>...".format(total))
 
+    # Perform the test.
+    te.log.info("Performing the test...")
     for d in range(total):
-        te.log.info("Writing <{}>...".format(d))
+
         yield te.ffd.write(d=d)
-        q = te.ffd.read()
-        te.log.info("Read <{}>...".format(q))
+        q = yield te.ffd.read()        
+
+        te.log.info("Wrote <{}>, Read <{}>...".format(d,q))
         if d!=q: raise TestFailure()
 
     te.log.info("Test completed successfully...")
