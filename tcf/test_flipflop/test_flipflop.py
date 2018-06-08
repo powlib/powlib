@@ -2,6 +2,7 @@ from cocotb         import test, coroutine, fork
 from cocotb.result  import TestFailure, TestSuccess, ReturnValue
 from powlib.drivers import FlipflopDriver
 from powlib.utils   import TestEnvironment
+from random         import randint
 
 @coroutine
 def perform_setup(dut):
@@ -51,5 +52,70 @@ def test_sequential(dut):
 
     te.log.info("Test completed successfully...")
     raise TestSuccess()
+
+@test(skip = False)
+def test_valid(dut):
+    '''
+    Checks to see if the valid flag is working properly.
+    '''
+
+    # Prepare test environment.
+    te = yield perform_setup(dut)
+
+    width = te.ffd.W
+    total = 1<<width
+    te.log.info("Total transactions <{}>...".format(total))
+
+    # Perform the test.
+    te.log.info("Performing the test...")
+
+    prev_vld_q = yield te.ffd.read()        
+    for d in range(total):
+
+        vld = randint(0,1)
+        yield te.ffd.write(d=d,vld=vld)
+        q = yield te.ffd.read()                 
+        
+        if vld==1:
+            prev_vld_q = q
+            te.log.info("Valid, Wrote <{}>, Read <{}>...".format(d,q))
+            if d!=q: raise TestFailure()
+        else:
+            te.log.info("Invalid, Wrote <{}>, Read <{}>, Last Valid <{}>...".format(d,q,prev_vld_q))
+            if prev_vld_q!=q: raise TestFailure()    
+                
+
+    te.log.info("Test completed successfully...")
+    raise TestSuccess()
+
+@test(skip = False)
+def test_random(dut):
+    '''
+    Verifies the flip flop with random data.
+    '''
+
+    # Prepare test environment.
+    te = yield perform_setup(dut)
+
+    width = te.ffd.W
+    total = 1<<width
+    te.log.info("Total transactions <{}>...".format(total))    
+
+    # Perform the test.
+    te.log.info("Performing the test...")
+
+    for each_trans in range(total):
+
+        d = randint(0,total-1) 
+
+        yield te.ffd.write(d=d)
+        q = yield te.ffd.read()
+
+        te.log.info("Wrote <{}>, Read <{}>...".format(d,q))
+        if d!=q: raise TestFailure()
+
+    te.log.info("Test completed successfully...")
+    raise TestSuccess()
+
     
 
