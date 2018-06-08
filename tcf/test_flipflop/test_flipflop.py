@@ -10,6 +10,7 @@ from cocotb.scoreboard import Scoreboard
 from cocotb.result import TestFailure
 
 from powlib.drivers import FlipflopDriver
+from powlib.utils   import TestEnvironment
 
 import powlib
 
