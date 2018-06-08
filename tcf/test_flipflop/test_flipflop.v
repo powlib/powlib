@@ -2,10 +2,10 @@
 
 module test_flipflop(d,q,clk,rst,vld);
        
-  parameter              W    = 1;    // Width
+  parameter              W    = 8;    // Width
   parameter      [W-1:0] INIT = 0;    // Initial value
   parameter              EAR  = 0;    // Enable asynchronous reset
-  parameter              EVLD = 0;    // Enable valid  
+  parameter              EVLD = 1;    // Enable valid  
   input     wire [W-1:0] d;           // Input data
   input     wire         vld;         // Valid  
   input     wire         clk;         // Clock

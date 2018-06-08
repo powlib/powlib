@@ -1,9 +1,10 @@
 from cocotb          import coroutine, fork
 from cocotb.clock    import Clock
+from cocotb.log      import SimLog
 from cocotb.triggers import RisingEdge, ReadOnly, Timer
 
 @coroutine
-def start_clock(self, clock, period, phase):
+def start_clock(clock, period, phase=(0,"ns")):
     '''
     Starts a clock.
     clock  = SimHandle of the clock.
@@ -14,7 +15,7 @@ def start_clock(self, clock, period, phase):
     fork(Clock(clock,*period).start())
 
 @coroutine
-def start_reset(self, reset, active_mode=1, associated_clock=None, wait_cycles=4, wait_time=(50,"ns")):
+def start_reset(reset, active_mode=1, associated_clock=None, wait_cycles=4, wait_time=(50,"ns")):
     '''
     reset            = SimHandle of the reset.
     active_mode      = Specifies the active state of the reset.
@@ -56,6 +57,7 @@ class TestEnvironment(object):
 
         self.__dut  = dut
         self.__name = name
+        self.__log  = SimLog("cocotb.testenvironment.%s" % name)
         self.__rsts = []
         self.__clks = []
 
@@ -66,8 +68,14 @@ class TestEnvironment(object):
         '''
         return self.__dut
 
+    @property
+    def log(self):
+        '''
+        Safely returns the SimLog.
+        '''
+        return self.__log    
 
-    def _add_clock(self, clock, period, phase):
+    def _add_clock(self, clock, period, phase=(0,"ns")):
         '''
         Adds a clock to the environment.
         clock  = SimHandle of the clock.
@@ -93,7 +101,7 @@ class TestEnvironment(object):
         self.__rsts.append((reset, active_mode, associated_clock, wait_cycles, wait_time))
 
     @coroutine
-    def start():
+    def start(self):
         '''
         Starts the testbench environment by starting the clocks and resetting all
         the resets.
@@ -101,16 +109,20 @@ class TestEnvironment(object):
 
         # Start indefinitely each clock.
         for clock, period, phase in self.__clks:
+            self.log.info("Starting clock <{}> with period <{}> and phase <{}>...".format(clock._name, period, phase))
             fork(start_clock(clock, period, phase))
 
         # Reset the test environment. 
         rst_frks = []
         for reset, active_mode, associated_clock, wait_cycles, wait_time in self.__rsts:
+            self.log.info("Performing reset with <{}>...".format(reset._name))            
             rst_frks.append(fork(start_reset(reset, active_mode, associated_clock, wait_cycles, wait_time)))
 
         # Block until all the resets become inactive.
         for rst_frk in rst_frks:
             yield rst_frk.join()
+
+        self.log.info("System has started...")
 
 
 

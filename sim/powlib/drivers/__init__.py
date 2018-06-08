@@ -1,4 +1,5 @@
 from cocotb                 import coroutine
+from cocotb.bus             import Bus
 from cocotb.triggers        import RisingEdge, ReadOnly, Lock
 from cocotb.drivers         import BusDriver as OriginalBusDriver
 
@@ -30,11 +31,25 @@ class FlipflopDriver(BusDriver):
         See the BusDriver definition.
         '''
 
-        BusDriver.__init__(self, *args, bus_separator="", **kwargs)
+        BusDriver.__init__(self, *args, name="", bus_separator="", **kwargs)
 
         # Set default values
         self.bus.d.setimmediatevalue(default_values['d'])
         self.bus.vld.setimmediatevalue(default_values['vld'])
+
+    @property
+    def W(self):
+        '''
+        Gets the specified width.
+        '''
+        return int(self.entity.W.value)
+
+    @property
+    def EVLD(self):
+        '''
+        Gets the valid enable flag.
+        '''
+        return int(self.entity.EVLD.value)
 
     @coroutine
     def write(self, d=0, vld=1):
@@ -42,8 +57,8 @@ class FlipflopDriver(BusDriver):
         Writes new data to the flip flop.
         '''
 
-        self.bus.d.value   = d
-        self.bus.vld.value = vld
+        self.bus.d         <= d
+        self.bus.vld       <= vld
 
         yield ReadOnly()
         yield RisingEdge(self.clock)
