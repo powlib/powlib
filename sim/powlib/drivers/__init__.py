@@ -2,41 +2,52 @@ from cocotb                 import coroutine
 from cocotb.bus             import Bus
 from cocotb.result          import ReturnValue
 from cocotb.triggers        import RisingEdge, ReadOnly, Lock
-from cocotb.drivers         import BusDriver as OriginalBusDriver
-
-class BusDriver(OriginalBusDriver):
-    '''
-    This BusDrive was created to extend the functionality
-    of the original BusDriver defined in cocotb.
-    '''
-
-    def __init__(self, entity, name, clock, *args, **kwargs):
-        '''
-        See the OriginalBusDriver definition.
-        '''
-
-        OriginalBusDriver.__init__(self, entity, name, clock)
-        self.bus = Bus(self.entity, self.name, self._signals, self._optional_signals, *args, **kwargs)
+from cocotb.drivers         import BusDriver
 
 class FlipflopDriver(BusDriver):
     '''
-    Really simple cocotb driver.
+    cocotb driver for powlib_flipflop.
     '''
 
-    _signals          = ['d','q']
+    _signals          = []
+    _wrsignals        = ['d']
+    _rdsignals        = ['q']
     _optional_signals = ['vld']
     _default_values   = {'d':0,'vld':0}
 
-    def __init__(self, default_values=_default_values, *args, **kwargs):
+    def __init__(self, entity, name="", default_values=_default_values, *args,**kwargs):
         '''
-        See the BusDriver definition.
+        See the BusDriver definition for more information on the inputs.
         '''
 
-        BusDriver.__init__(self, *args, name="", bus_separator="", **kwargs)
+        BusDriver.__init__(self, entity=entity, name=name, *args, **kwargs)
+
+        # Create separate write and read buses.
+        self.__wrbus = Bus(entity=entity, 
+                           name="", # Intentionally done this way.
+                           signals=FlipflopDriver._wrsignals, 
+                           optional_signals=FlipflopDriver._optional_signals, 
+                           bus_separator="")
+        self.__rdbus = Bus(entity=entity, 
+                           name="", # Intentionally done this way.
+                           signals=FlipflopDriver._rdsignals, 
+                           bus_separator="")
+
+        # The Bus assigned in the BusDriver shall be the write Bus.
+        self.bus = self.__wrbus
 
         # Set default values
-        self.bus.d.setimmediatevalue(default_values['d'])
-        self.bus.vld.setimmediatevalue(default_values['vld'])
+        self.__wrbus.d.setimmediatevalue(default_values['d'])
+        self.__wrbus.vld.setimmediatevalue(default_values['vld'])
+
+    @coroutine
+    def _driver_send(self, transaction, sync=True):
+        '''
+        Sync flag is ignored in this overloaded method.
+        *** Needs to be overloaded to prevent BusDriver from referencing the wrong operation
+            and bus.
+        '''
+        yield self.write(d=transaction.d,vld=transaction.vld)
 
     @property
     def W(self):
@@ -52,6 +63,20 @@ class FlipflopDriver(BusDriver):
         '''
         return int(self.entity.EVLD.value)
 
+    @property
+    def wrbus(self):
+        '''
+        Returns the write Bus.
+        '''
+        return self.__wrbus
+    
+    @property
+    def rdbus(self):
+        '''
+        Returns the read Bus.
+        '''
+        return self.__rdbus
+
     @coroutine
     def write(self, d=0, vld=1):
         '''
@@ -59,8 +84,8 @@ class FlipflopDriver(BusDriver):
         untils the data is registered.
         '''
 
-        self.bus.d.value   = d
-        self.bus.vld.value = vld
+        self.__wrbus.d.value   = d
+        self.__wrbus.vld.value = vld
         yield ReadOnly()
         yield RisingEdge(self.clock)     
 
@@ -72,6 +97,46 @@ class FlipflopDriver(BusDriver):
         '''
 
         yield ReadOnly()
-        value = int(self.bus.q.value)
+        value = int(self.__rdbus.q.value)
         yield RisingEdge(self.clock)
         raise ReturnValue(value)
+
+class FFSyncDriver(FlipflopDriver):
+    '''
+    cocotb driver for powlib_ffsync.
+    '''
+
+    def __init__(self, aclock, bclock, *args, **kwargs):
+        '''
+        aclock = SimHandle of aclock.
+        bclock = SimHandle of bclock.
+        '''
+        FlipflopDriver.__init__(self, clock=aclock, *args, **kwargs)
+        self.__bclock = bclock
+
+    @property
+    def aclock(self):
+        '''
+        Basically allows the user to acquire aclock, without
+        knowing it's named clock.
+        '''
+        return self.clock    
+
+    @property
+    def bclock(self):
+        '''
+        Safely return the bclock SimHandle.
+        '''
+        return self.__bclock
+
+    @coroutine
+    def read(self):
+        '''
+        Reads the output of the flip flop and then waits 
+        until the rise of the next clock cycle.
+        '''
+
+        yield ReadOnly()
+        value = int(self.rdbus.q.value)
+        yield RisingEdge(self.bclock)
+        raise ReturnValue(value)        
