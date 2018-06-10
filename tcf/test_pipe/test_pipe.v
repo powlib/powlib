@@ -13,6 +13,11 @@ module test_pipe(d,q,clk,rst,vld);
   input     wire         rst;         // Reset
   input     wire         vld;         // Valid
 
+  initial begin
+    $dumpfile("waveform.vcd");
+    $dumpvars(2, dut);
+  end  
+
   powlib_pipe #(.W(W),.INIT(INIT),.EAR(EAR),.EVLD(EVLD),.S(S)) dut (.d(d),.q(q),.clk(clk),.rst(rst),.vld(vld));               
     
 endmodule

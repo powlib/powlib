@@ -1,5 +1,6 @@
 from cocotb         import test, coroutine, fork
 from cocotb.result  import TestFailure, TestSuccess, ReturnValue
+from powlib         import Transaction
 from powlib.drivers import FlipflopDriver
 from powlib.utils   import TestEnvironment
 from random         import randint
@@ -49,7 +50,8 @@ def test_sequential(dut):
     for d in range(total):
 
         yield te.ffd.write(d=d)
-        q = yield te.ffd.read()        
+        yield te.ffd.cycle()
+        q = yield te.ffd.read(sync=False)        
 
         te.log.info("Wrote <{}>, Read <{}>...".format(d,q))
         if d!=q: raise TestFailure()
@@ -78,7 +80,8 @@ def test_valid(dut):
 
         vld = randint(0,1)
         yield te.ffd.write(d=d,vld=vld)
-        q = yield te.ffd.read()                 
+        yield te.ffd.cycle()
+        q = yield te.ffd.read(sync=False)                 
         
         if vld==1:
             prev_vld_q = q
@@ -110,24 +113,20 @@ def test_random(dut):
     # Perform the test.
     te.log.info("Performing the test...")
 
-    prev_d = None
-    for each_trans in range(total):
+    # Write out the randomly generated values.
+    ds = [randint(0,total-1) for _ in range(total)]
+    for d in ds: te.ffd.append(transaction=Transaction(d=d,vld=1))
 
-        d = randint(0,total-1) 
+    # Wait a few clock cycles. See comments below for explanation.
+    yield te.ffd.cycle() # This cycle waits until the first word (d) is registered.
+    yield te.ffd.cycle() # This cycle waits until the registered word (q) can be read.
 
-        wr = fork(te.ffd.write(d=d))
-        rd = fork (te.ffd.read())
+    # Read out and compare each value.
+    for d in ds:
 
-        yield wr.join()
-        yield rd.join()
-
-        q = rd.retval
-        
-        if prev_d is not None:
-            te.log.info("Previous <{}>, Read <{}>...".format(prev_d,q))
-            if prev_d!=q: raise TestFailure()
-
-        prev_d = d
+        q = yield te.ffd.read()
+        te.log.info("Wrote <{}>, Read <{}>...".format(d,q))
+        if d!=q: raise TestFailure()
 
     te.log.info("Test completed successfully...")
     raise TestSuccess()

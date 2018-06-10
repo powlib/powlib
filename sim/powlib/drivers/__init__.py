@@ -43,9 +43,9 @@ class FlipflopDriver(BusDriver):
     @coroutine
     def _driver_send(self, transaction, sync=True):
         '''
-        Sync flag is ignored in this overloaded method.
         *** Needs to be overloaded to prevent BusDriver from referencing the wrong operation
             and bus.
+        *** The sync flag is intentionally ignored so that all transactions are synchronized.
         '''
         yield self.write(d=transaction.d,vld=transaction.vld)
 
@@ -78,27 +78,34 @@ class FlipflopDriver(BusDriver):
         return self.__rdbus
 
     @coroutine
-    def write(self, d=0, vld=1):
+    def cycle(self):
+        '''
+        Waits a single clock cycle.
+        '''
+
+        yield ReadOnly()
+        yield RisingEdge(self.clock)           
+
+    @coroutine
+    def write(self, d=0, vld=1, sync=True):
         '''
         Writes new data to the flip flop and then waits 
         untils the data is registered.
         '''
-
+        
         self.__wrbus.d.value   = d
         self.__wrbus.vld.value = vld
-        yield ReadOnly()
-        yield RisingEdge(self.clock)     
+        if sync: yield self.cycle()   
 
     @coroutine
-    def read(self):
+    def read(self, sync=True):
         '''
         Reads the output of the flip flop and then waits 
         until the rise of the next clock cycle.
         '''
-
-        yield ReadOnly()
+        
         value = int(self.__rdbus.q.value)
-        yield RisingEdge(self.clock)
+        if sync: yield self.cycle()
         raise ReturnValue(value)
 
 class FFSyncDriver(FlipflopDriver):
@@ -147,4 +154,16 @@ class FFSyncDriver(FlipflopDriver):
         yield ReadOnly()
         value = int(self.rdbus.q.value)
         yield RisingEdge(self.bclock)
-        raise ReturnValue(value)        
+        raise ReturnValue(value)      
+
+class PipeDriver(FlipflopDriver):
+    '''
+    cocotb driver for powlib_pipe.
+    '''
+
+    @property
+    def S(self):
+        '''
+        Gets the number of stages.
+        '''
+        return int(self.entity.S.value)
