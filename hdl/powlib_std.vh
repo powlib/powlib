@@ -8,5 +8,5 @@ function integer powlib_clogb2;
       value = value >> 1;
     end
   end
-  endfunction
+endfunction
 

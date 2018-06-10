@@ -12,6 +12,11 @@ module test_flipflop(d,q,clk,rst,vld);
   input     wire         rst;         // Reset
   output    wire [W-1:0] q;           // Output data    
 
+  initial begin
+    $dumpfile("waveform.vcd");
+    $dumpvars(1, dut);
+  end
+
   powlib_flipflop #(.W(W),.INIT(INIT),.EAR(EAR),.EVLD(EVLD)) dut (.d(d),.q(q),.clk(clk),.rst(rst),.vld(vld));               
     
 endmodule

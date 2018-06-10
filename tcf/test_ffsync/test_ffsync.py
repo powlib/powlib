@@ -39,6 +39,9 @@ def test_sequential(dut):
     '''
     Simply writes data sequentially into the flip flop syncrhonizer
     and checks for the correct output.
+
+    ***This test isn't really thought out. A better should eventually
+       be created instead.
     '''
 
     # Prepare the test environment.
@@ -52,7 +55,7 @@ def test_sequential(dut):
     te.log.info("Performing the test...")
 
     te.log.info("Writing out the non-zero, sequential data...")
-    ds = [value+1 for value in range(total)]
+    ds = [value+1 for value in range(total-1)]
     for d in ds: te.ffsd.append(transaction=Transaction(d=d,vld=1))
 
     prev_q = 0
@@ -64,7 +67,7 @@ def test_sequential(dut):
             q = yield te.ffsd.read()            
 
         te.log.info("D=<{}>, Q=<{}>...".format(d,q))
-        #if d!=q: raise TestFailure()
+        if d!=q: raise TestFailure()
 
         prev_q = q
 
