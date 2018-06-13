@@ -1,9 +1,11 @@
-from cocotb         import test, coroutine, fork
-from cocotb.result  import TestFailure, TestSuccess, ReturnValue
-from powlib         import Transaction
-from powlib.drivers import FlipflopDriver
-from powlib.utils   import TestEnvironment
-from random         import randint
+from cocotb          import test, coroutine, fork
+from cocotb.triggers import Timer
+from cocotb.result   import TestFailure, TestSuccess, ReturnValue
+from powlib          import Transaction, Namespace
+from powlib.drivers  import CntrDriver
+from powlib.monitors import FlipflopMonitor
+from powlib.utils    import TestEnvironment
+from random          import randint
 
 
 @coroutine
@@ -28,6 +30,9 @@ def perform_setup(dut):
         te._add_reset(reset=te.dut.rst, associated_clock=te.dut.clk)
 
         # Add the driver and monitor.
+        te.c = Namespace(d=CntrDriver(entity=te.dut, clock=te.dut.clk),
+                         m=FlipflopMonitor(entity=te.dut.cntr_inst, clock=te.dut.clk, 
+                                           reset=te.dut.rst))
 
         # Start the environment.
         rc = fork(te.start())
@@ -40,10 +45,25 @@ def perform_setup(dut):
     for rc in rcs: yield rc.join()
 
     # Return the test environments.
-    raise ReturnValue(te)
+    raise ReturnValue(tes)
 
 @test(skip=False)
 def test_advance(dut):
 
     # Prepare the test envrionments.
-    tes = yield perform_setup(dut)
+    tes = yield perform_setup(dut)    
+
+    for te in tes:
+
+        width = te.c.d.W
+        aval  = te.c.d.X
+        init  = te.c.d.INIT
+        total = width*2
+
+        te.c.d.append(Transaction(adv=1))
+
+
+
+        pass
+
+    yield Timer(10000,"ns")
