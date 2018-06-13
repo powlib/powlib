@@ -28,7 +28,12 @@ class FlipflopMonitor(BusMonitor):
         '''
         BusMonitor.__init__(self, name="", bus_separator="", *args, **kwargs)
 
+    def clear(self):
+        '''
+        Clears the queue.
+        '''
 
+        self._recvQ.clear()
 
     @coroutine
     def cycle(self):

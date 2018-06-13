@@ -49,21 +49,51 @@ def perform_setup(dut):
 
 @test(skip=False)
 def test_advance(dut):
+    '''
+    This test simply tests the counting operation
+    of the counters.
+    '''
 
     # Prepare the test envrionments.
     tes = yield perform_setup(dut)    
 
-    for te in tes:
+    # Implement the test coroutine.
+    @coroutine
+    def test(te):
 
+        # Gather important data.
         width = te.c.d.W
         aval  = te.c.d.X
         init  = te.c.d.INIT
-        total = width*2
+        total = 1<<width
+        itrs  = 270
 
-        te.c.d.append(Transaction(adv=1))
+        # Enable the counter for the specified amount of 
+        # clock cycles.
+        yield te.c.d.write(adv=1, sync=False)
+        for _ in range(itrs): yield te.c.d.cycle()
+        yield te.c.d.write(adv=0, sync=True)
 
+        # Generate the expected data.
+        exps = [(val*aval+init)%total for val in range(itrs)]
 
+        for idx, exp in enumerate(exps):
+            act = te.c.m[idx]
+            te.log.info("Actual: <{}>, Expected: <{}>...".format(act,exp))
+            if act!=exp: 
+                te.log.error("Test failed!")
+                raise ReturnValue(False)
 
-        pass
+        te.log.info("Test successful...")
+        raise ReturnValue(True)
 
-    yield Timer(10000,"ns")
+    # Run the test for both counters.
+    rcs = [fork(test(te)) for te in tes]
+    for rc in rcs: yield rc.join()
+
+    # Check if any of the coroutines failed.
+    if any(rc.retval==False for rc in rcs): raise TestFailure
+
+    raise TestSuccess()
+
+    
