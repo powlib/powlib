@@ -62,13 +62,16 @@ class WrRdDriver(BusDriver):
         return self.__rdbus
 
     @coroutine
-    def cycle(self):
+    def cycle(self, amount=1):
         '''
-        Waits a single clock cycle.
+        Waits a single clock cycle, by default.
+        Specifying the amount causes a wait for
+        multiple cycles.
         '''
 
-        yield ReadOnly()
-        yield RisingEdge(self.clock)    
+        for _ in range(amount):
+            yield ReadOnly()
+            yield RisingEdge(self.clock)    
 
     @coroutine
     def write(self):

@@ -107,7 +107,7 @@ module powlib_cntr(cntr,nval,adv,ld,clr,clk,rst);
   powlib_flipflop #(.W(W),.INIT(INIT),.EAR(EAR),.EVLD(1)) cntr_inst (
     .d((clr) ? INIT   : 
        (ld0) ? nval   :
-       (adv) ? cntr+X : 0),
+       (adv) ? cntr+X : {W{1'bz}}),
     .q(cntr),
     .clk(clk),
     .rst(rst),
