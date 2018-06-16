@@ -115,7 +115,7 @@ module powlib_cntr(cntr,nval,adv,ld,clr,clk,rst);
   
 endmodule
 
-module powlib_spram(wridx,wrdata,wrvld,wrbe,rdidx,rddata,clk);
+module powlib_dpram(wridx,wrdata,wrvld,wrbe,rdidx,rddata,clk);
 
 `include "powlib_std.vh"
 

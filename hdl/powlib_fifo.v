@@ -32,7 +32,7 @@ module powlib_sfifo(wrdata,wrvld,wrrdy,rddata,rdvld,rdrdy,clk,rst);
   powlib_cntr     #(.W(WPTR),.ELD(0))             rdcntr_inst  (.cntr(rdptr),.adv(rdinc),.clr(rdclr),.clk(clk),.rst(rst));
   powlib_flipflop #(.W(WPTR),.INIT(D-1),.EVLD(1)) rdptrm1_inst (.d(rdptr),.q(rdptrm1),.clk(clk),.rst(rst),.vld(rdinc));
   
-  powlib_spram    #(.W(W),.D(D))                  ram_inst     (.wridx(wrptr),.wrdata(wrdata),.wrvld(wrinc),.rdidx(rdptr),.rddata(rddata),.clk(clk));
+  powlib_dpram    #(.W(W),.D(D))                  ram_inst     (.wridx(wrptr),.wrdata(wrdata),.wrvld(wrinc),.rdidx(rdptr),.rddata(rddata),.clk(clk));
   
 endmodule
 

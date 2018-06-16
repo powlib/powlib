@@ -90,50 +90,15 @@ class WrRdDriver(BusDriver):
         '''
         yield self.write(**vars(transaction))
 
-class FlipflopDriver(BusDriver):
+class FlipflopDriver(WrRdDriver):
     '''
     cocotb driver for powlib_flipflop.
     '''
 
-    _signals          = []
     _wrsignals        = ['d']
     _rdsignals        = ['q']
     _optional_signals = ['vld']
     _default_values   = {'d':0,'vld':0}
-
-    def __init__(self, entity, name="", default_values=_default_values, *args,**kwargs):
-        '''
-        See the BusDriver definition for more information on the inputs.
-        '''
-
-        BusDriver.__init__(self, entity=entity, name=name, *args, **kwargs)
-
-        # Create separate write and read buses.
-        self.__wrbus = Bus(entity=entity, 
-                           name="", # Intentionally done this way.
-                           signals=FlipflopDriver._wrsignals, 
-                           optional_signals=FlipflopDriver._optional_signals, 
-                           bus_separator="")
-        self.__rdbus = Bus(entity=entity, 
-                           name="", # Intentionally done this way.
-                           signals=FlipflopDriver._rdsignals, 
-                           bus_separator="")
-
-        # The Bus assigned in the BusDriver shall be the write Bus.
-        self.bus = self.__wrbus
-
-        # Set default values
-        self.__wrbus.d.setimmediatevalue(default_values['d'])
-        self.__wrbus.vld.setimmediatevalue(default_values['vld'])
-
-    @coroutine
-    def _driver_send(self, transaction, sync=True):
-        '''
-        *** Needs to be overloaded to prevent BusDriver from referencing the wrong operation
-            and bus.
-        *** The sync flag is intentionally ignored so that all transactions are synchronized.
-        '''
-        yield self.write(d=transaction.d,vld=transaction.vld)
 
     @property
     def W(self):
@@ -147,30 +112,7 @@ class FlipflopDriver(BusDriver):
         '''
         Gets the valid enable flag.
         '''
-        return int(self.entity.EVLD.value)
-
-    @property
-    def wrbus(self):
-        '''
-        Returns the write Bus.
-        '''
-        return self.__wrbus
-    
-    @property
-    def rdbus(self):
-        '''
-        Returns the read Bus.
-        '''
-        return self.__rdbus
-
-    @coroutine
-    def cycle(self):
-        '''
-        Waits a single clock cycle.
-        '''
-
-        yield ReadOnly()
-        yield RisingEdge(self.clock)           
+        return int(self.entity.EVLD.value)       
 
     @coroutine
     def write(self, d=0, vld=1, sync=True):
@@ -179,8 +121,8 @@ class FlipflopDriver(BusDriver):
         untils the data is registered.
         '''
         
-        self.__wrbus.d.value   = d
-        self.__wrbus.vld.value = vld
+        self.wrbus.d.value   = d
+        self.wrbus.vld.value = vld
         if sync: yield self.cycle()   
 
     @coroutine
@@ -190,7 +132,7 @@ class FlipflopDriver(BusDriver):
         until the rise of the next clock cycle.
         '''
         
-        value = int(self.__rdbus.q.value)
+        value = int(self.rdbus.q.value)
         if sync: yield self.cycle()
         raise ReturnValue(value)
 
