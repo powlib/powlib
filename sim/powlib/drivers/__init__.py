@@ -256,8 +256,71 @@ class CntrDriver(WrRdDriver):
         until the rise of the next clock cycle.
         '''
         
-        value = int(self.__rdbus.cntr.value)
+        value = int(self.rdbus.cntr.value)
         if sync: yield self.cycle()
         raise ReturnValue(value)
+
+class DpramDriver(WrRdDriver):   
+
+    _wrsignals        = ['wridx','wrdata','wrvld','rdidx']
+    _rdsignals        = ['rddata']
+    _optional_signals = ['wrbe']
+    _default_values   = {'wridx':0,'wrdata':0,'wrvld':0,'rdidx':0,'wrbe':0}         
+
+    @property
+    def W(self):
+        '''
+        Gets the specified width.
+        '''
+        return int(self.entity.W.value)
+
+    @property
+    def D(self):
+        '''
+        Gets the specified depth. 
+        '''
+        return int(self.entity.D.value)
+    
+    @property
+    def INIT(self):
+        '''
+        Gets the initialize value.
+        '''
+        return int(self.entity.INIT.value)         
+
+    @property
+    def WIDX(self):
+        '''
+        Gets the width of the index.
+        '''
+        return int(self.entity.WIDX.value)
+
+    @property
+    def EWBE(self):
+        '''
+        Gets the enable write-bit enable.
+        '''
+        return int(self.entity.EWBE.value)
+
+    @coroutine
+    def write(self, wridx=0, wrdata=0, wrvld=0, wrbe=0, rdidx=0, sync=True):
+        '''
+        Writes data to the dual-port ram.
+        '''
+        self.wrbus.wridx.value  = wridx
+        self.wrbus.wrdata.value = wrdata
+        self.wrbus.wrvld.value  = wrvld
+        self.wrbus.wrbe.value   = wrbe
+        self.wrbus.rdidx.value  = rdidx
+        if sync: yield self.cycle()   
+
+    @coroutine
+    def read(self, rdidx=None, sync=True):
+        '''
+        Reads from the dual-port ram.
+        '''
+        if rdidx is not None:
+            yield self.write(rdidx=rdidx, sync=sync)        
+        raise ReturnValue(int(self.rdbus.rddata.value))
 
 

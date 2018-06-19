@@ -123,22 +123,24 @@ module powlib_dpram(wridx,wrdata,wrvld,wrbe,rdidx,rddata,clk);
   parameter                    D    = 8;                // Depth
   parameter         [W*D-1:0]  INIT = 0;                // Initializes the memory
   parameter                    WIDX = powlib_clogb2(D); // Width of index
-  parameter                    EWBE = 0;                // Enable write byte enable
+  parameter                    EWBE = 0;                // Enable write bit enable
   input     wire    [WIDX-1:0] wridx;                   // Write index 
   input     wire    [W-1:0]    wrdata;                  // Write data
   input     wire               wrvld;                   // Write data valid
   input     wire    [W-1:0]    wrbe;                    // Write bit enable
   input     wire    [WIDX-1:0] rdidx;                   // Read index
-  output    wire    [W-1:0]    rddata;                  // Read data
+  output    reg     [W-1:0]    rddata;                  // Read data
   input     wire               clk;                     // Clock
             reg     [W-1:0]    mem[D-1:0];              // Array (i.e. should be inferred as block ram)
             integer            i;      
    
-  assign rddata = mem[rdidx]; 
-  
+  always @(*) begin
+    rddata <= mem[rdidx];
+  end
+    
   initial begin
     for (i=0; i<D; i=i+1) begin
-      mem[i] <= INIT[W*i +: W];
+      mem[i] = INIT[W*i +: W]; 
     end    
   end
   

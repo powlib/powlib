@@ -92,7 +92,7 @@ def test_advance(dut):
     for rc in rcs: yield rc.join()
 
     # Check if any of the coroutines failed.
-    if any(rc.retval==False for rc in rcs): raise TestFailure
+    if any(rc.retval==False for rc in rcs): raise TestFailure()
 
     raise TestSuccess()
 
@@ -102,7 +102,8 @@ def test_eyeball(dut):
     This tests various operations of the counter.
 
     This is incredibly lame, but this test was verified with
-    the good ol' fashion "eye-ball" approach.
+    the good ol' fashion "eye-ball" approach; I simply looked
+    at the waveforms and made sure the output results made sense.
     '''
 
     # Prepare the test envrionments.
@@ -137,6 +138,6 @@ def test_eyeball(dut):
     for rc in rcs: yield rc.join()
 
     # Check if any of the coroutines failed.
-    if any(rc.retval==False for rc in rcs): raise TestFailure
+    if any(rc.retval==False for rc in rcs): raise TestFailure()
 
     raise TestSuccess()        
