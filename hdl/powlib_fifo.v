@@ -4,8 +4,10 @@ module powlib_sfifo(wrdata,wrvld,wrrdy,rddata,rdvld,rdrdy,clk,rst);
 
 `include "powlib_std.vh"
 
-  parameter  integer            W = 16;
-  parameter  integer            D = 8;
+  parameter                     W    = 16;       // Width
+  parameter                     D    = 8;        // Depth
+  parameter                     EDBG = 0;        // Enable debug statements
+  parameter                     ID   = "SFIFO";  // String identifier
   input      wire               clk;
   input      wire               rst;
   input      wire    [W-1:0]    wrdata;
@@ -27,11 +29,11 @@ module powlib_sfifo(wrdata,wrvld,wrrdy,rddata,rdvld,rdrdy,clk,rst);
              wire               rdinc = rdvld && rdrdy;    
              wire               rdclr = (rdptr==(D-1)) && rdinc;                
   
-  powlib_cntr     #(.W(WPTR),.ELD(0))             wrcntr_inst  (.cntr(wrptr),.adv(wrinc),.clr(wrclr),.clk(clk),.rst(rst));
-  powlib_cntr     #(.W(WPTR),.ELD(0))             rdcntr_inst  (.cntr(rdptr),.adv(rdinc),.clr(rdclr),.clk(clk),.rst(rst));
-  powlib_flipflop #(.W(WPTR),.INIT(D-1),.EVLD(1)) rdptrm1_inst (.d(rdptr),.q(rdptrm1),.clk(clk),.rst(rst),.vld(rdinc));
+  powlib_cntr     #(.W(WPTR),.ELD(0))                           wrcntr_inst  (.cntr(wrptr),.adv(wrinc),.clr(wrclr),.clk(clk),.rst(rst));
+  powlib_cntr     #(.W(WPTR),.ELD(0))                           rdcntr_inst  (.cntr(rdptr),.adv(rdinc),.clr(rdclr),.clk(clk),.rst(rst));
+  powlib_flipflop #(.W(WPTR),.INIT(D-1),.EVLD(1))               rdptrm1_inst (.d(rdptr),.q(rdptrm1),.clk(clk),.rst(rst),.vld(rdinc));
   
-  powlib_dpram    #(.W(W),.D(D))                  ram_inst     (.wridx(wrptr),.wrdata(wrdata),.wrvld(wrinc),.rdidx(rdptr),.rddata(rddata),.clk(clk));
+  powlib_dpram    #(.W(W),.D(D),.EDBG(EDBG),.ID({ID,"_DPRAM"})) ram_inst     (.wridx(wrptr),.wrdata(wrdata),.wrvld(wrinc),.rdidx(rdptr),.rddata(rddata),.clk(clk));
   
 endmodule
 

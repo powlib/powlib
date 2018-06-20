@@ -1,6 +1,6 @@
 from cocotb          import test, coroutine, fork
 from cocotb.result   import TestFailure, TestSuccess, ReturnValue
-from powlib          import Namespace, Transaction
+from powlib          import Transaction
 from powlib.drivers  import SfifoDriver
 from powlib.utils    import TestEnvironment
 from random          import randint
@@ -31,3 +31,40 @@ def perform_setup(dut):
 def test_fifo(dut):
 
     te = yield perform_setup(dut)
+
+    width = te.sfd.W
+    total = 1<<width
+    depth = te.sfd.D
+    size  = depth*4
+    data  = lambda : randint(0, total-1)
+    exps  = []
+    acts  = []
+
+    # Write the data.    
+    exps.extend([data() for _ in range(size)])
+    for exp in exps: te.sfd.append(Transaction(wrdata=exp))    
+    te.sfd.append(Transaction())
+
+    # Wait some amount of clock cycles.
+    yield te.sfd.cycle(amount=depth+4)
+
+    # Read a bunch of data.
+    act = yield te.sfd.read(rdrdy=1)
+    acts.append(act)
+    for _ in range(size-1): 
+        act = yield te.sfd.read()
+        acts.append(act)    
+    yield te.sfd.read(rdrdy=0)
+
+    # Verify data.
+    for act, exp in zip(acts,exps):
+        te.log.info("Act: {}, Exp: {}".format(act, exp))
+        if act!=exp: raise TestFailure()
+
+    raise TestSuccess()
+
+
+
+
+
+

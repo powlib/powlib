@@ -124,6 +124,8 @@ module powlib_dpram(wridx,wrdata,wrvld,wrbe,rdidx,rddata,clk);
   parameter         [W*D-1:0]  INIT = 0;                // Initializes the memory
   parameter                    WIDX = powlib_clogb2(D); // Width of index
   parameter                    EWBE = 0;                // Enable write bit enable
+  parameter                    EDBG = 0;                // Enable debug statements
+  parameter                    ID   = "DPRAM";          // String identifier
   input     wire    [WIDX-1:0] wridx;                   // Write index 
   input     wire    [W-1:0]    wrdata;                  // Write data
   input     wire               wrvld;                   // Write data valid
@@ -155,6 +157,14 @@ module powlib_dpram(wridx,wrdata,wrvld,wrbe,rdidx,rddata,clk);
           mem[wridx][i] <= wrdata[i];
         end
       end
+    end    
+  end
+
+  if (EDBG!=0) begin
+    always @(posedge clk) begin      
+      for (i=0; i<D; i=i+1) begin
+        $display("ID: %s, i: %d, mem[i]: %d", ID, i, mem[i]);        
+      end     
     end
   end
 
