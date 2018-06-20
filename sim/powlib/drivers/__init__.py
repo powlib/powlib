@@ -205,6 +205,9 @@ class PipeDriver(FlipflopDriver):
         return int(self.entity.S.value)
 
 class CntrDriver(WrRdDriver):
+    '''
+    cocotb driver for powlib_cntr.
+    '''
     
     _wrsignals        = ['adv','clr']
     _rdsignals        = ['cntr']
@@ -261,6 +264,9 @@ class CntrDriver(WrRdDriver):
         raise ReturnValue(value)
 
 class DpramDriver(WrRdDriver):   
+    '''
+    cocotb driver for powlib_dpram.
+    '''
 
     _wrsignals        = ['wridx','wrdata','wrvld','rdidx']
     _rdsignals        = ['rddata']
@@ -322,5 +328,89 @@ class DpramDriver(WrRdDriver):
         if rdidx is not None:
             yield self.write(rdidx=rdidx, sync=sync)        
         raise ReturnValue(int(self.rdbus.rddata.value))
+
+class SfifoDriver(WrRdDriver):
+
+    _wrsignals        = ['wrdata','wrvld','rdrdy']
+    _rdsignals        = ['rddata','wrrdy','rdvld']
+    _default_values   = {'wrdata':0,'wrvld':0,'rdrdy':0}
+
+    @property
+    def W(self):
+        '''
+        Returns the width of the synchronous fifo.
+        '''
+        return int(self.entity.W.value)
+
+    @property
+    def D(self):
+        '''
+        Returns the depth of the synchronous fifo.
+        '''
+        return int(self.entity.D.value)
+
+    @coroutine
+    def write(self, wrdata=None, sync=True):
+        '''
+        Writes data into the synchronous fifo.
+        '''
+
+        # Attempt to write data if available.
+        if wrdata is not None:
+
+            # A write consists of assigning the
+            # new data to the wrdata interface 
+            # and setting the valid high.
+            self.wrbus.wrvld.value  = 1
+            self.wrbus.wrdata.value = wrdata
+
+            # If synchronized, wait until the write
+            # interface is ready before continuing.
+            if sync:
+                yield self.cycle()
+                while int(self.rdbus.wrrdy.value)==0:
+                    yield self.cycle()
+
+        # If not data is available to be written, 
+        # set the valid to low.
+        else:
+            self.wrbus.wrvld.value = 0
+            if sync: yield self.cycle()
+
+    @coroutine
+    def read(self, rdrdy=None, sync=True):
+        '''
+        Reads data from the synchronous fifo.
+        '''                
+
+        # Condition 0 indicates the ready is set and
+        # the read method will block until valid data is
+        # available.
+        # Condition 1 indicates the ready is low and 
+        # the read method will simply block until a clock
+        # cycle has passed.
+        # If both conditions haven't been met, this
+        # indicates the ready was set at an earlier cycle,
+        # and the read method will block until valid data
+        # is available.
+        cond0 = rdrdy is not None and rdrdy!=0
+        cond1 = rdrdy is not None and rdrdy==0
+
+        if cond0: self.wrbus.rdrdy.value = 1
+        if cond1: self.wrbus.rdrdy.value = 0
+
+        if sync: yield self.cycle()
+
+        if cond1: raise ReturnValue(None)
+
+        if sync:
+            while int(self.rdbus.rdvld.value)==0:
+                yield self.cycle()
+
+        raise ReturnValue(int(self.rdbus.rddata.value))
+
+
+    
+    
 
 

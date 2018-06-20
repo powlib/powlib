@@ -6,7 +6,6 @@ module powlib_sfifo(wrdata,wrvld,wrrdy,rddata,rdvld,rdrdy,clk,rst);
 
   parameter  integer            W = 16;
   parameter  integer            D = 8;
-  parameter  integer            B = 0;
   input      wire               clk;
   input      wire               rst;
   input      wire    [W-1:0]    wrdata;
