@@ -115,6 +115,52 @@ module powlib_cntr(cntr,nval,adv,ld,clr,clk,rst);
   
 endmodule
 
+module powlib_graycntr(cntr,gray,nval,adv,ld,clr,clk,rst);
+
+`include "powlib_std.vh"
+
+  parameter              W     = 32;           // Width
+  parameter      [W-1:0] X     = 1;            // Increment / decrement value
+  parameter      [W-1:0] INIT  = 0;            // Initialize value
+  parameter              ELD   = 1;            // Enable load feature
+  parameter              EAR   = 0;            // Enable asynchronous reset feature
+  parameter              EDBG  = 0;            // Enable debug statements
+  parameter              ID    = "GRAYCNTRY";  // String identifier
+  output    wire [W-1:0] cntr;                 // Current counter value
+  output    wire [W-1:0] gray;                 // Gray-encoded value. 1 cycle delay.
+  input     wire [W-1:0] nval;                 // New value
+  input     wire         adv;                  // Advances the counter
+  input     wire         ld;                   // Loads a new value into counter
+  input     wire         clr;                  // Clears the counter to INIT
+  input     wire         clk;                  // Clock
+  input     wire         rst;                  // Reset
+
+  powlib_cntr #(.W(W),.X(X),.INIT(INIT),.ELD(ELD),.EAR(EAR)) cntr_inst (
+    .cntr(cntr),
+    .nval(nval),
+    .adv(adv),
+    .ld(ld),
+    .clr(clr),
+    .clk(clk),
+    .rst(rst));
+    
+  powlib_flipflop #(.W(W),.INIT(powlib_grayencode(INIT)),.EAR(EAR)) gray_inst (
+    .d(powlib_grayencode(cntr)),
+    .q(gray),
+    .clk(clk),
+    .rst(rst));
+
+  if (EDBG!=0) begin
+    initial begin
+      if ((1<<powlib_clogb2(W))!=W) begin
+        $display("ID: %s, W: %d, W is not a power of 2.", ID, W);
+        $finish;
+      end;
+    end
+  end
+
+endmodule
+
 module powlib_dpram(wridx,wrdata,wrvld,wrbe,rdidx,rddata,clk);
 
 `include "powlib_std.vh"

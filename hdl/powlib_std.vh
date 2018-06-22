@@ -1,7 +1,10 @@
-
+`ifndef POWLIB 
+`define POWLIB 
+`define POWLIB_DW 32
+`endif
 
 function integer powlib_clogb2;
-  input reg [31:0] value;
+  input reg [`POWLIB_DW-1:0] value;
   begin
     value = value - 1;
     for (powlib_clogb2=0; value>0; powlib_clogb2=powlib_clogb2+1) begin
@@ -9,4 +12,26 @@ function integer powlib_clogb2;
     end
   end
 endfunction
+
+function integer powlib_grayencode;
+  input reg [`POWLIB_DW-1:0] value;
+  begin
+    value             = value-1;
+    powlib_grayencode = value^(value>>1);
+  end
+endfunction
+
+function integer powlib_graydecode;
+  input reg     [`POWLIB_DW-1:0] encoded;
+        reg     [`POWLIB_DW-1:0] value;
+        integer                  i;
+  begin
+    value[0] = encoded[0];
+    for (i=1; i<`POWLIB_DW-1; i=i+1) begin
+      value[i] = encoded[i]^value[i-1];
+    end
+    powlib_graydecode = value;
+  end 
+endfunction
+
 
