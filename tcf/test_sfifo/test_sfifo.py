@@ -18,7 +18,7 @@ def perform_setup(dut):
     te._add_clock(clock=te.dut.clk, period=(5,"ns"))
     te._add_reset(reset=te.dut.rst, associated_clock=te.dut.clk)
 
-    # Add the pipe namespace to the environment.
+    # Add the synchronous fifo driver to the environment.
     te.sfd=SfifoDriver(entity=te.dut, clock=te.dut.clk)
 
     # Start the environment.

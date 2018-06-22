@@ -4,33 +4,37 @@ module test_gray();
 
 `include "powlib_std.vh"
 
-  localparam              W    = 4;
-  localparam              X    = 1;
-  localparam              INIT = 0;
-  localparam              EDBG = 1;
-  localparam              ID   = "GC";
-
-             wire [W-1:0] cntr; 
-             wire [W-1:0] gray;
-             wire [W-1:0] decoded;
-             wire         adv;
-             wire         clr;
-             wire         clk;
-             wire         rst;
+  localparam                       W        = 4;
+  localparam                       X        = -1;
+  localparam                       INIT     = 0;
+  localparam                       EDBG     = 1;
+                                   
+             wire [W-1:0]          cntr; 
+             wire [W-1:0]          encoded;
+             wire [W-1:0]          decoded;
+             wire                  adv;
+             wire                  clr;
+             wire                  clk;
+             wire                  rst;
+             
   
   initial begin
     $dumpfile("waveform.vcd");
-    $dumpvars(2, dut);
+    $dumpvars(2, cntr_inst);
+    $dumpvars(2, encode_inst);
     $dumpvars(2, decode_inst);
   end  
 
-  powlib_graycntr #(.W(W),.X(X),.INIT(INIT),.EDBG(EDBG),.ID(ID)) dut (
-    .cntr(cntr),.gray(gray),.adv(adv),.clr(clr),
+  powlib_cntr #(.W(W),.X(X),.INIT(INIT)) cntr_inst (
+    .cntr(cntr),.adv(adv),.clr(clr),
     .clk(clk),.rst(rst));
     
-  powlib_flipflop #(.W(W),.INIT(INIT)) decode_inst ( 
-    .d(powlib_graydecode(gray)),
-    .q(decoded),
+  powlib_grayencodeff #(.W(W),.INIT(INIT),.EDBG(EDBG)) encode_inst (
+    .d(cntr),.q(encoded),
+    .clk(clk),.rst(rst));
+    
+  powlib_graydecodeff #(.W(W),.INIT(powlib_grayencode(INIT)),.EDBG(EDBG)) decode_inst (
+    .d(encoded),.q(decoded),
     .clk(clk),.rst(rst));
 
 endmodule
