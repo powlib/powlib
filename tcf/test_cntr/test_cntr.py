@@ -47,7 +47,7 @@ def perform_setup(dut):
     # Return the test environments.
     raise ReturnValue(tes)
 
-@test(skip=True)
+@test(skip=False)
 def test_advance(dut):
     '''
     This test simply tests the counting operation
