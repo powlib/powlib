@@ -123,8 +123,6 @@ module powlib_grayencodeff(d,q,clk,rst,vld);
   parameter      [W-1:0]          INIT = 0;           // Initial value
   parameter                       EAR  = 0;           // Enable asynchronous reset
   parameter                       EVLD = 0;           // Enable valid  
-  parameter                       EDBG = 0;           // Enable debug statements
-  parameter                       ID   = "GRAYEN";    // String identifier
   input     wire [W-1:0]          d;                  // Input data
   input     wire                  vld;                // Valid  
   input     wire                  clk;                // Clock
@@ -137,15 +135,6 @@ module powlib_grayencodeff(d,q,clk,rst,vld);
   powlib_flipflop #(.W(W),.INIT(powlib_grayencode(INIT)),.EAR(EAR),.EVLD(EVLD)) ff_inst (
     .d(d1),.q(q),.vld(vld),.clk(clk),.rst(rst));
     
-  if (EDBG!=0) begin
-    initial begin
-      if ((1<<powlib_clogb2(W))!=W) begin
-        $display("ID: %s, ERROR, W: %d, W is not a power of 2.", ID, W);
-        $finish;
-      end;
-    end
-  end
-  
 endmodule
 
 module powlib_graydecodeff(d,q,clk,rst,vld);
@@ -156,8 +145,6 @@ module powlib_graydecodeff(d,q,clk,rst,vld);
   parameter      [W-1:0]          INIT = 0;         // Initial value
   parameter                       EAR  = 0;         // Enable asynchronous reset
   parameter                       EVLD = 0;         // Enable valid  
-  parameter                       EDBG = 0;         // Enable debug statements
-  parameter                       ID   = "GRAYDE";  // String identifier
   input     wire [W-1:0]          d;                // Input data
   input     wire                  vld;              // Valid  
   input     wire                  clk;              // Clock
@@ -169,15 +156,6 @@ module powlib_graydecodeff(d,q,clk,rst,vld);
   
   powlib_flipflop #(.W(W),.INIT(powlib_graydecode(INIT)),.EAR(EAR),.EVLD(EVLD)) ff_inst (
     .d(d1),.q(q),.vld(vld),.clk(clk),.rst(rst));
-    
-  if (EDBG!=0) begin
-    initial begin
-      if ((1<<powlib_clogb2(W))!=W) begin
-        $display("ID: %s, ERROR, W: %d, W is not a power of 2.", ID, W);
-        $finish;
-      end;
-    end
-  end
   
 endmodule
 

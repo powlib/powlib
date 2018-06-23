@@ -37,5 +37,120 @@ module powlib_sfifo(wrdata,wrvld,wrrdy,rddata,rdvld,rdrdy,clk,rst);
   
 endmodule
 
-module powlib_afifo();
+module powlib_afifo_wrcntrl(wrptr,graywrptr,grayrdptrm1,wrvld,wrrdy,wrinc,wrclk,wrrst);
+
+`include "powlib_std.vh"
+
+  parameter              W   = 16;        
+  parameter              EAR = 0;
+  output    wire [W-1:0] wrptr;
+  output    wire [W-1:0] graywrptr;
+  input     wire [W-1:0] grayrdptrm1;
+  input     wire         wrvld;
+  output    wire         wrrdy;
+  output    wire         wrinc;
+  input     wire         wrclk;
+  input     wire         wrrst;
+            wire [W-1:0] wrptr0;
+  assign                 wrrdy = graywrptr!=grayrdptrm1;
+  assign                 wrinc = wrvld && wrrdy;
+  
+  powlib_flipflop #(.W(W),.INIT(0),.EAR(EAR)) wrptr0_inst (
+    .d(wrptr0),.q(wrptr),.clk(wrclk),.rst(wrrst));
+    
+  powlib_grayencodeff #(.W(W),.INIT(0),.EAR(EAR)) encode_inst (
+    .d(wrptr0),.q(graywrptr),.clk(wrclk),.rst(wrrst));
+    
+  powlib_cntr #(.W(W),.INIT(0),.EAR(EAR),.ELD(0)) cntr_inst (
+    .cntr(wrptr0),.adv(wrinc),.clk(wrclk),.rst(wrrst));
+  
+endmodule
+
+module powlib_afifo_rdcntrl(rdptr,grayrdptrm1,graywrptr,rdvld,rdrdy,rdclk,rdrst);
+
+`include "powlib_std.vh"
+
+  parameter              W   = 16;        
+  parameter              EAR = 0;
+  output    wire [W-1:0] rdptr;
+  output    wire [W-1:0] grayrdptrm1;
+  input     wire [W-1:0] graywrptr;
+  output    wire         rdvld;
+  input     wire         rdrdy;
+  input     wire         rdclk;
+  input     wire         rdrst;
+            wire [W-1:0] grayrdptr;
+  assign                 rdvld = graywrptr!=grayrdptr;
+            wire [W-1:0] rdptr0;
+            wire         rdinc = rdvld && rdrdy;
+  
+  powlib_flipflop #(.W(W),.INIT(0),.EAR(EAR)) rdptr0_inst (
+    .d(rdptr0),.q(rdptr),.clk(rdclk),.rst(rdrst));
+    
+  powlib_flipflop #(.W(W),.INIT(powlib_grayencode({W{1'd1}})),.EAR(EAR),.EVLD(1)) encodem1_inst (
+    .d(grayrdptr),.q(grayrdptrm1),.vld(rdinc),.clk(rdclk),.rst(rdrst));
+    
+  powlib_grayencodeff #(.W(W),.INIT(0),.EAR(EAR)) encode_inst (
+    .d(rdptr0),.q(grayrdptr),.clk(rdclk),.rst(rdrst));
+    
+  powlib_cntr #(.W(W),.INIT(0),.EAR(EAR),.ELD(0)) cntr_inst (
+    .cntr(rdptr0),.adv(rdinc),.clk(rdclk),.rst(rdrst));
+  
+endmodule
+
+module powlib_afifo(wrdata,wrvld,wrrdy,rddata,rdvld,rdrdy,wrclk,wrrst,rdclk,rdrst);
+
+`include "powlib_std.vh"
+
+  parameter                  W    = 16;       // Width
+  parameter                  D    = 8;        // Depth
+  parameter                  EAR  = 0;        // Enable asynchronous reset
+  parameter                  EDBG = 0;        // Enable debug statements
+  parameter                  ID   = "AFIFO";  // String identifier
+  localparam                 WPTR =  powlib_clogb2(D);
+  input      wire [W-1:0]    wrdata;
+  input      wire            wrvld;
+  output     wire            wrrdy;
+  output     wire [W-1:0]    rddata;
+  output     wire            rdvld;
+  input      wire            rdrdy; 
+  input      wire            wrclk;
+  input      wire            wrrst;
+  input      wire            rdclk;
+  input      wire            rdrst;
+             wire            wrinc;
+             wire [WPTR-1:0] wrptr, graywrptr, graywrptr0;
+             wire [WPTR-1:0] rdptr, grayrdptrm1, grayrdptrm10;
+  
+  powlib_afifo_wrcntrl #(.W(WPTR),.EAR(EAR)) wrcntrl_inst (
+    .wrptr(wrptr),.graywrptr(graywrptr),.grayrdptrm1(grayrdptrm10),
+    .wrvld(wrvld),.wrrdy(wrrdy),.wrinc(wrinc),
+    .wrclk(wrclk),.wrrst(wrrst));
+    
+  powlib_afifo_rdcntrl #(.W(WPTR),.EAR(EAR)) rdcntrl_inst (
+    .rdptr(rdptr),.grayrdptrm1(grayrdptrm1),.graywrptr(graywrptr0),
+    .rdvld(rdvld),.rdrdy(rdrdy),
+    .rdclk(rdclk),.rdrst(rdrst));
+    
+  powlib_ffsync #(.W(WPTR),.INIT(0),.EAR(EAR)) graywrptr_sync_inst (
+    .d(graywrptr),.q(graywrptr0),
+    .aclk(wrclk),.bclk(rdclk),.arst(wrrst),.brst(rdrst));
+    
+  powlib_ffsync #(.W(WPTR),.INIT(powlib_grayencode({W{1'd1}})),.EAR(EAR)) grayrdptrm1_sync_inst (
+    .d(grayrdptrm1),.q(grayrdptrm10),
+    .aclk(rdclk),.bclk(wrclk),.arst(rdrst),.brst(wrrst));
+
+  powlib_dpram #(.W(W),.D(D),.EDBG(EDBG),.ID({ID,"_DPRAM"})) ram_inst (
+    .wridx(wrptr),.wrdata(wrdata),.wrvld(wrinc),
+    .rdidx(rdptr),.rddata(rddata),.clk(wrclk));
+  
+  if (EDBG!=0) begin
+    initial begin
+      if ((1<<WPTR)!=D) begin
+        $display("ID: %s, D: %d, D is not a power of 2.", ID, D);
+        $finish;
+      end;
+    end
+  end
+  
 endmodule

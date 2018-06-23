@@ -4,10 +4,9 @@ module test_gray();
 
 `include "powlib_std.vh"
 
-  localparam                       W        = 4;
-  localparam                       X        = -1;
+  localparam                       W        = 5;
+  localparam                       X        = 1;
   localparam                       INIT     = 0;
-  localparam                       EDBG     = 1;
                                    
              wire [W-1:0]          cntr; 
              wire [W-1:0]          encoded;
@@ -29,11 +28,11 @@ module test_gray();
     .cntr(cntr),.adv(adv),.clr(clr),
     .clk(clk),.rst(rst));
     
-  powlib_grayencodeff #(.W(W),.INIT(INIT),.EDBG(EDBG)) encode_inst (
+  powlib_grayencodeff #(.W(W),.INIT(INIT)) encode_inst (
     .d(cntr),.q(encoded),
     .clk(clk),.rst(rst));
     
-  powlib_graydecodeff #(.W(W),.INIT(powlib_grayencode(INIT)),.EDBG(EDBG)) decode_inst (
+  powlib_graydecodeff #(.W(W),.INIT(powlib_grayencode(INIT))) decode_inst (
     .d(encoded),.q(decoded),
     .clk(clk),.rst(rst));
 
