@@ -2,6 +2,7 @@ from cocotb          import test, coroutine, fork
 from cocotb.result   import TestFailure, TestSuccess, ReturnValue
 from powlib          import Transaction
 from powlib.drivers  import SfifoDriver
+from powlib.monitors import SfifoMonitor
 from powlib.utils    import TestEnvironment
 from random          import randint
 
@@ -25,6 +26,7 @@ def perform_setup(dut, wrclk_prd, wrclk_phs, rdclk_prd, rdclk_phs):
     # one for each domain.
     te.wrffd = SfifoDriver(entity=te.dut, clock=te.dut.wrclk)
     te.rdffd = SfifoDriver(entity=te.dut, clock=te.dut.rdclk)
+    te.rdffm = SfifoMonitor(wrrddriver=te.rdffd, reset=te.dut.rdrst)
 
     # Start the environment.
     yield te.start()    
@@ -44,3 +46,25 @@ def test_afifo(dut):
                              wrclk_phs=(2,"ns"),
                              rdclk_prd=(2,"ns"),
                              rdclk_phs=(0,"ns"))
+                          
+    width = te.wrffd.W
+    total = 1<<width
+    depth = te.wrffd.D
+    size  = depth*4
+    data  = lambda : randint(0, total-1)
+    exps  = []
+    acts  = []
+
+    # Write the data.    
+    exps.extend([data() for _ in range(size)])
+    for exp in exps: te.wrffd.append(Transaction(wrdata=exp))    
+    te.wrffd.append(Transaction())
+    
+    # Wait an arbitrary amount of time.
+    yield te.wrffd.cycle(amount=20)
+    
+    # Start the reading in the monitor.
+    te.rdffm.start()
+    
+    # Wait another arbitrary amount of time.
+    yield te.rdffd.cycle(amount=20)

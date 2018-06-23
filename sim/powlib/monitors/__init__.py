@@ -2,6 +2,7 @@
 from cocotb          import coroutine
 from cocotb.monitors import BusMonitor
 from cocotb.triggers import ReadOnly, RisingEdge, Event
+from cocotb.result   import ReturnValue
 
 def _in_reset(bus_monitor, active=1):
     '''
@@ -66,15 +67,19 @@ class WrRdDriverMonitor(BusMonitor):
     and uses its read method to acquire transactions.
     '''
     
-     _signals = []
+    _signals = []
      
     def __init__(self, wrrddriver, *args, **kwargs):
         '''
         Takes a WrRdDriver as an inputer so that its read
         method can be utilized.
         '''
-        BusMonitor.__init__(self, name="", bus_separator="", *args, **kwargs)
         self.__driver = wrrddriver
+        BusMonitor.__init__(self, entity=wrrddriver.entity, 
+                                  clock=wrrddriver.clock,
+                                  name="", 
+                                  bus_separator="", 
+                                  *args, **kwargs)
         
     @coroutine
     def cycle(self, amount=1):
@@ -82,7 +87,7 @@ class WrRdDriverMonitor(BusMonitor):
         Uses the driver cycle method to
         wait a specified amount of clock cycles.
         '''
-        self.driver.cycle(amount)
+        yield self.driver.cycle(amount)
         
     @coroutine
     def read(self):
@@ -156,10 +161,10 @@ class SfifoMonitor(WrRdDriverMonitor):
         This constructor simply creates the state and event objects needed
         to implement the read method defined for the monitor.
         '''
-        WrRdDriverMonitor.__init__(self, *args, **kwargs)
         self.__state = "stopped"
         self.__evt   = Event()
-        
+        WrRdDriverMonitor.__init__(self, *args, **kwargs)
+
     def start(self):
         '''
         Indicate to the read method it should start its operation.

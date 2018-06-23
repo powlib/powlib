@@ -58,11 +58,11 @@ module powlib_afifo_wrcntrl(wrptr,graywrptr,grayrdptrm1,wrvld,wrrdy,wrinc,wrclk,
   powlib_flipflop #(.W(W),.INIT(0),.EAR(EAR)) wrptr0_inst (
     .d(wrptr0),.q(wrptr),.clk(wrclk),.rst(wrrst));
     
-  powlib_grayencodeff #(.W(W),.INIT(0),.EAR(EAR)) encode_inst (
-    .d(wrptr0),.q(graywrptr),.clk(wrclk),.rst(wrrst));
+  powlib_grayencodeff #(.W(W),.INIT(0),.EAR(EAR),.EVLD(1)) encode_inst (
+    .d(wrptr0),.q(graywrptr),.vld(wrinc),.clk(wrclk),.rst(wrrst));
     
   powlib_cntr #(.W(W),.INIT(0),.EAR(EAR),.ELD(0)) cntr_inst (
-    .cntr(wrptr0),.adv(wrinc),.clk(wrclk),.rst(wrrst));
+    .cntr(wrptr0),.adv(wrinc),.clr(0),.clk(wrclk),.rst(wrrst));
   
 endmodule
 
@@ -90,11 +90,11 @@ module powlib_afifo_rdcntrl(rdptr,grayrdptrm1,graywrptr,rdvld,rdrdy,rdclk,rdrst)
   powlib_flipflop #(.W(W),.INIT(powlib_grayencode({W{1'd1}})),.EAR(EAR),.EVLD(1)) encodem1_inst (
     .d(grayrdptr),.q(grayrdptrm1),.vld(rdinc),.clk(rdclk),.rst(rdrst));
     
-  powlib_grayencodeff #(.W(W),.INIT(0),.EAR(EAR)) encode_inst (
-    .d(rdptr0),.q(grayrdptr),.clk(rdclk),.rst(rdrst));
+  powlib_grayencodeff #(.W(W),.INIT(0),.EAR(EAR),.EVLD(1)) encode_inst (
+    .d(rdptr0),.q(grayrdptr),.vld(rdinc),.clk(rdclk),.rst(rdrst));
     
   powlib_cntr #(.W(W),.INIT(0),.EAR(EAR),.ELD(0)) cntr_inst (
-    .cntr(rdptr0),.adv(rdinc),.clk(rdclk),.rst(rdrst));
+    .cntr(rdptr0),.adv(rdinc),.clr(0),.clk(rdclk),.rst(rdrst));
   
 endmodule
 
