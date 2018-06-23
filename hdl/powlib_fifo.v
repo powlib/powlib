@@ -136,7 +136,7 @@ module powlib_afifo(wrdata,wrvld,wrrdy,rddata,rdvld,rdrdy,wrclk,wrrst,rdclk,rdrs
     .d(graywrptr),.q(graywrptr0),
     .aclk(wrclk),.bclk(rdclk),.arst(wrrst),.brst(rdrst));
     
-  powlib_ffsync #(.W(WPTR),.INIT(powlib_grayencode({W{1'd1}})),.EAR(EAR)) grayrdptrm1_sync_inst (
+  powlib_ffsync #(.W(WPTR),.INIT(powlib_grayencode({WPTR{1'd1}})),.EAR(EAR)) grayrdptrm1_sync_inst (
     .d(grayrdptrm1),.q(grayrdptrm10),
     .aclk(rdclk),.bclk(wrclk),.arst(rdrst),.brst(wrrst));
 

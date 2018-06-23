@@ -1,7 +1,7 @@
 
 from cocotb          import coroutine
 from cocotb.monitors import BusMonitor
-from cocotb.triggers import ReadOnly, RisingEdge
+from cocotb.triggers import ReadOnly, RisingEdge, Event
 
 def _in_reset(bus_monitor, active=1):
     '''
@@ -111,10 +111,10 @@ class WrRdDriverMonitor(BusMonitor):
         '''
         
         if self._reset is not None:
-            reset = self._reset
+            reset  = self._reset
             active = 1
         elif self._reset_n is not None:
-            reset = self._reset_n
+            reset  = self._reset_n
             active = 0
         else: raise ValueError("No associated reset.")
         reset_str = str(reset.value)        
@@ -146,3 +146,64 @@ class WrRdDriverMonitor(BusMonitor):
             if value is not None:
                 self._recv(transaction=value)
 
+class SfifoMonitor(WrRdDriverMonitor):
+    '''
+    Monitors the reading interface of a powlib_sfifo.
+    '''
+
+    def __init__(self, *args, **kwargs):
+        '''
+        This constructor simply creates the state and event objects needed
+        to implement the read method defined for the monitor.
+        '''
+        WrRdDriverMonitor.__init__(self, *args, **kwargs)
+        self.__state = "stopped"
+        self.__evt   = Event()
+        
+    def start(self):
+        '''
+        Indicate to the read method it should start its operation.
+        '''
+        self.__evt.set()
+        
+    def stop(self):
+        '''
+        After one more read, stop further read transactions.
+        '''
+        self.__state = "stopped"
+
+    @coroutine
+    def read(self):
+        '''
+        Implements the behavior of the monitor's read method. Initially,
+        the monitor is in a stopped state, until the user decides to start it.
+        Once started, the read method will call the drivers read method that 
+        sets the rdrdy signal and set the state of the monitor to started. While
+        in its started state, the monitor will call the driver's read method, 
+        without any arguments, indicating it should simply read whenever the rdvld 
+        is high.
+        '''
+        
+        if self.__state=="stopped":
+            '''
+            Stopped state indicates the monitor is waiting.
+            '''
+            yield self.driver.read(rdrdy=0)
+            yield self.__evt.wait()
+            self.__evt.clear()
+            self.__state = "started"
+            value = yield self.driver.read(rdrdy=1)
+            raise ReturnValue(value)
+            
+        elif self.__state=="started":
+            '''
+            Once started, the monitor will continue to read valid data from
+            the read interface.
+            '''
+            value = yield self.driver.read()
+            raise ReturnValue(value)
+            
+        else: raise ValueError("Unknown state occurred.")
+            
+
+    

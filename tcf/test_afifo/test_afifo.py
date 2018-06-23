@@ -20,8 +20,11 @@ def perform_setup(dut, wrclk_prd, wrclk_phs, rdclk_prd, rdclk_phs):
     te._add_clock(clock=te.dut.rdclk, period=rdclk_prd, phase=rdclk_phs)
     te._add_reset(reset=te.dut.rdrst, associated_clock=te.dut.rdclk)
 
-    # Add the synchronous fifo driver to the environment.
-    #te.sfd=AfifoDriver(entity=te.dut, clock=te.dut.clk)
+    # Add the aynchronous fifo driver to the environment. The
+    # asynchronous FIFO driver is regarded as two synchronous FIFOs,
+    # one for each domain.
+    te.wrffd = SfifoDriver(entity=te.dut, clock=te.dut.wrclk)
+    te.rdffd = SfifoDriver(entity=te.dut, clock=te.dut.rdclk)
 
     # Start the environment.
     yield te.start()    
