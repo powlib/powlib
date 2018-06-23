@@ -68,3 +68,11 @@ def test_afifo(dut):
     
     # Wait another arbitrary amount of time.
     yield te.rdffd.cycle(amount=20)
+    
+    # Stop the monitor for a while. What this really means is that
+    # the rdrdy signal is placed in a low state after one more word
+    # is read from the asynchronous FIFO.
+    te.rdffm.stop()
+    
+    yield te.rdffd.cycle(amount=10)
+    

@@ -52,17 +52,23 @@ module powlib_afifo_wrcntrl(wrptr,graywrptr,grayrdptrm1,wrvld,wrrdy,wrinc,wrclk,
   input     wire         wrclk;
   input     wire         wrrst;
             wire [W-1:0] wrptr0;
-  assign                 wrrdy = graywrptr!=grayrdptrm1;
-  assign                 wrinc = wrvld && wrrdy;
+            wire         wrinc0 = wrvld && wrrdy0;
+            wire         wrrdy0 = graywrptr!=grayrdptrm1;
+  
+  powlib_flipflop #(.W(1),.INIT(0),.EAR(EAR)) wrrdy0_inst (
+    .d(wrrdy0),.q(wrrdy),.clk(wrclk),.rst(wrrst));
+  
+  powlib_flipflop #(.W(1),.INIT(0),.EAR(EAR)) wrinc0_inst (
+    .d(wrinc0),.q(wrinc),.clk(wrclk),.rst(wrrst));
   
   powlib_flipflop #(.W(W),.INIT(0),.EAR(EAR)) wrptr0_inst (
     .d(wrptr0),.q(wrptr),.clk(wrclk),.rst(wrrst));
     
   powlib_grayencodeff #(.W(W),.INIT(0),.EAR(EAR),.EVLD(1)) encode_inst (
-    .d(wrptr0),.q(graywrptr),.vld(wrinc),.clk(wrclk),.rst(wrrst));
+    .d(wrptr0),.q(graywrptr),.vld(wrinc0),.clk(wrclk),.rst(wrrst));
     
   powlib_cntr #(.W(W),.INIT(0),.EAR(EAR),.ELD(0)) cntr_inst (
-    .cntr(wrptr0),.adv(wrinc),.clr(0),.clk(wrclk),.rst(wrrst));
+    .cntr(wrptr0),.adv(wrinc0),.clr(0),.clk(wrclk),.rst(wrrst));
   
 endmodule
 

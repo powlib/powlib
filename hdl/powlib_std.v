@@ -207,7 +207,7 @@ module powlib_dpram(wridx,wrdata,wrvld,wrbe,rdidx,rddata,clk);
   if (EDBG!=0) begin
     always @(posedge clk) begin      
       for (i=0; i<D; i=i+1) begin
-        $display("ID: %s, i: %d, mem[i]: %d", ID, i, mem[i]);        
+        $display("ID: %s, i: %d, mem[i]: %h", ID, i, mem[i]);        
       end     
     end
   end
