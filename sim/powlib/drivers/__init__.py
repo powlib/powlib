@@ -77,8 +77,17 @@ class WrRdDriver(BusDriver):
     def write(self):
         '''
         Should be implemented by the user. The arguments should be 
-        the name of the input signals.
+        the name of the input signals related to writing data.
         ''' 
+        raise NotImplemented("This method should be implemented by the child.")
+        
+    @coroutine
+    def read(self):
+        '''
+        Should be implemented by the user. The arguments should
+        be the name of the input signals related to reading data. This
+        method should also return data by raising ReturnValue.
+        '''
         raise NotImplemented("This method should be implemented by the child.")
 
     @coroutine
