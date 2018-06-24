@@ -54,20 +54,16 @@ module powlib_afifo_wrcntrl(wrptr,graywrptr,grayrdptrm1,wrvld,wrrdy,wrinc,wrclk,
             wire [W-1:0] wrptr0;
             wire         wrinc0 = wrvld && wrrdy0;
             wire         wrrdy0 = graywrptr!=grayrdptrm1;
+  assign                 wrinc  = wrinc0;
+  assign                 wrrdy  = wrrdy0;
   
-  powlib_flipflop #(.W(1),.INIT(0),.EAR(EAR)) wrrdy0_inst (
-    .d(wrrdy0),.q(wrrdy),.clk(wrclk),.rst(wrrst));
-  
-  powlib_flipflop #(.W(1),.INIT(0),.EAR(EAR)) wrinc0_inst (
-    .d(wrinc0),.q(wrinc),.clk(wrclk),.rst(wrrst));
-  
-  powlib_flipflop #(.W(W),.INIT(0),.EAR(EAR)) wrptr0_inst (
-    .d(wrptr0),.q(wrptr),.clk(wrclk),.rst(wrrst));
+  powlib_flipflop #(.W(W),.INIT(0),.EAR(EAR),.EVLD(1)) wrptr0_inst (
+    .d(wrptr0),.q(wrptr),.vld(wrinc0),.clk(wrclk),.rst(wrrst));
     
   powlib_grayencodeff #(.W(W),.INIT(0),.EAR(EAR),.EVLD(1)) encode_inst (
     .d(wrptr0),.q(graywrptr),.vld(wrinc0),.clk(wrclk),.rst(wrrst));
     
-  powlib_cntr #(.W(W),.INIT(0),.EAR(EAR),.ELD(0)) cntr_inst (
+  powlib_cntr #(.W(W),.INIT(1),.EAR(EAR),.ELD(0)) cntr_inst (
     .cntr(wrptr0),.adv(wrinc0),.clr(0),.clk(wrclk),.rst(wrrst));
   
 endmodule
@@ -151,13 +147,11 @@ module powlib_afifo(wrdata,wrvld,wrrdy,rddata,rdvld,rdrdy,wrclk,wrrst,rdclk,rdrs
     .wridx(wrptr),.wrdata(wrdata),.wrvld(wrinc),
     .rdidx(rdptr),.rddata(rddata),.clk(wrclk));
   
-  if (EDBG!=0) begin
-    initial begin
-      if ((1<<WPTR)!=D) begin
-        $display("ID: %s, D: %d, D is not a power of 2.", ID, D);
-        $finish;
-      end;
-    end
+  initial begin
+    if ((1<<WPTR)!=D) begin
+      $display("ID: %s, D: %d, D is not a power of 2.", ID, D);
+      $finish;
+    end;
   end
   
 endmodule

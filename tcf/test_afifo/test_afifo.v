@@ -4,7 +4,7 @@ module test_afifo();
 
   localparam W    = 16;
   localparam D    = 8;
-  localparam EDBG = 1;
+  localparam EDBG = 0;
   
   initial begin
     $dumpfile("waveform.vcd");

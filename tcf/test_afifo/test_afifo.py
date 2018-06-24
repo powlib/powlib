@@ -42,37 +42,46 @@ def test_afifo(dut):
 
     # Create the test environment.
     te = yield perform_setup(dut=dut,
-                             wrclk_prd=(5,"ns"),
+                             wrclk_prd=(3,"ns"),
                              wrclk_phs=(2,"ns"),
-                             rdclk_prd=(2,"ns"),
+                             rdclk_prd=(10,"ns"),
                              rdclk_phs=(0,"ns"))
                           
-    width = te.wrffd.W
-    total = 1<<width
-    depth = te.wrffd.D
-    size  = depth*4
-    data  = lambda : randint(0, total-1)
-    exps  = []
-    acts  = []
+    width  = te.wrffd.W
+    total  = 1<<width
+    depth  = te.wrffd.D
+    size   = depth*4
+    data   = lambda : randint(0, total-1)
+    cycles = lambda : randint(1, size)
+    exps   = []
+    acts   = []
 
-    # Write the data.    
+    # Create and write the data. 
+    yield te.wrffd.cycle()
     exps.extend([data() for _ in range(size)])
     for exp in exps: te.wrffd.append(Transaction(wrdata=exp))    
     te.wrffd.append(Transaction())
     
-    # Wait an arbitrary amount of time.
-    yield te.wrffd.cycle(amount=20)
-    
-    # Start the reading in the monitor.
+    # Randomly start and stop the monitor; that is,
+    # toggle the rdrdy signal.
+    yield te.wrffd.cycle(amount=cycles())
     te.rdffm.start()
-    
-    # Wait another arbitrary amount of time.
-    yield te.rdffd.cycle(amount=20)
-    
-    # Stop the monitor for a while. What this really means is that
-    # the rdrdy signal is placed in a low state after one more word
-    # is read from the asynchronous FIFO.
+    yield te.rdffd.cycle(amount=cycles())
     te.rdffm.stop()
+    yield te.rdffd.cycle(amount=cycles())
+    te.rdffm.start()
+    yield te.wrffd.cycle(amount=cycles())
     
-    yield te.rdffd.cycle(amount=10)
+    # Just wait a bunch of time to ensure all data has been read
+    # out of the asynchronous FIFO.
+    yield te.wrffd.cycle(amount=size)
+    yield te.rdffd.cycle(amount=size)
+    
+    for i, exp in enumerate(exps):
+        act = te.rdffm[i]
+        te.log.info("Exp: {}, Act: {}".format(exp,act))
+        if exp!=act: raise TestFailure()
+        
+    raise TestSuccess()
+    
     
