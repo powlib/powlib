@@ -197,6 +197,7 @@ class SfifoMonitor(WrRdDriverMonitor):
             yield self.__evt.wait()
             self.__evt.clear()
             self.__state = "started"
+            yield self.cycle()
             value = yield self.driver.read(rdrdy=1)
             raise ReturnValue(value)
             
