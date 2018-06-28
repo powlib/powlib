@@ -1,3 +1,7 @@
 [submodule "cocotb"]
 	path = cocotb
 	url = https://github.com/andrewandrepowell/cocotb
+[submodule "hdl"]
+    path = hdl
+    url = https://github.com/andrewandrepowell/hdl
+
