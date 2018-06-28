@@ -4,4 +4,7 @@
 [submodule "hdl"]
     path = hdl
     url = https://github.com/powlib/hdl
+[submodule "sim"]
+    path = sim
+    url = https://github.com/powlib/sim    
 
