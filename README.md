@@ -6,7 +6,7 @@ This repo consists of the submodules that define the powlib library. The major c
 
 This section will briefly describe some of the future additions to this library, including some of the major plans. The descriptions will also change as time goes.
 
-Currently, the next task is to build a hardware test for the cross bar. The standard will be implemented afterward.
+Currently, the next task is to build a hardware test for the crossbar. The standard bus will be implemented afterward.
 
 - **tcf**: Test case files will be added as more IP gets added.
 - **sim**: The simulation library will continue to be developed.
@@ -16,9 +16,9 @@ Currently, the next task is to build a hardware test for the cross bar. The stan
         - **Synchronous**: A simple fifo that assumes writing and reading interfaces share the same clock domain. This is pretty much complete, though different implementations will be explored in the future.
         - **Asynchronous**: A fifo that's built to allow clock domain crossings. It utilizes the typical gray-coding and flip-flop synchronization to safely cross the fifo's pointers. Similar to the synchronous, it's done though in the future other implementations will be explored.
         - **Swiss**: My swiss fifo combines the pipe and both fifos into a single, convenient module. In effort not to over complicate it, this will likely be left alone.
-    - **bus**: 
+    - **bus**: Development is currently occurring in this section.
         - **Crossbar**: Recently finished the crossbar. Will need to redo the test bench since it's rather confusing. Will probably build a hardware test first.
-        - **Standard Bus**: 
+        - **Standard Bus**: This is the next target, a simple bus-based interconnect where only a single write-read interface pair can access to the bus.
     - **noc**: The ultimate goal is to start implement network-on-chip (noc) interconnect architectures suitable for FPGAs and compare them to standard bus-based interconencts.
         - **noc_worm**: *best effort services (bes)* noc will be created, implementing wormhole style routing. 
         - **noc_tdm**: *guaranteed services (gs)* noc will be created, implementing time-division-multiplexing (tdm) style routing. Inspired by the Æthereal noc.
@@ -51,4 +51,6 @@ Blog: https://hackaday.io/andrewandrepowell
 Æthereal Network on Chip: Concepts, Architectures, and Implementations
 - *Authors*: Kess Goossens, John Dielissen, and Andrei Radulescu
 - *Lab*: Philips Research Laboratories
+- *Journal*: IEEE Design & Test of Computers
+- *Date*: October 2005
 
