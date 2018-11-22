@@ -23,6 +23,15 @@ Currently, the next task is to build a hardware test for the crossbar. The stand
         - **noc_worm**: *best effort services (bes)* noc will be created, implementing wormhole style routing. 
         - **noc_tdm**: *guaranteed services (gs)* noc will be created, implementing time-division-multiplexing (tdm) style routing. Inspired by the Æthereal noc.
 
+# Prerequisites 
+
+It should be noted most of these prerequisites are optional. The **hdl** submodule references the powlib hardware descriptions, so any simulator or EDA tool that support Verilog 2001 can build the sources. Most of the prerequisites are necessary to run the powlib test cases and simulation library. 
+
+- **cocotb**: This is already included and only necessary for running the test case files. Cocotb provides a python layer that can interface with a simulator, provided that the simulator of choice implements an API supported by cocotb.
+- **Anaconda2**: Only python 2.7 is currently necessary to run the simulation library and test cases, however more tools from Anaconda2 will be utilized in the future.
+- **Icarus**: Simulations are all done with Icarus Verilog.
+- **Msys2**: This is only needed for Windows. 
+        
 # File Structure
 
 The following describes the file structure of this library.
