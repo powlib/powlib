@@ -16,6 +16,7 @@ Currently, the next task is to build a hardware test for the crossbar. The stand
         - **Synchronous**: A simple fifo that assumes writing and reading interfaces share the same clock domain. This is pretty much complete, though different implementations will be explored in the future.
         - **Asynchronous**: A fifo that's built to allow clock domain crossings. It utilizes the typical gray-coding and flip-flop synchronization to safely cross the fifo's pointers. Similar to the synchronous, it's done though in the future other implementations will be explored.
         - **Swiss**: My swiss fifo combines the pipe and both fifos into a single, convenient module. In effort not to over complicate it, this will likely be left alone.
+    - **ip**: Defined the powlib bus interface. The only IP finished, referring to cores that use the powlib bus interface to connect to a powlib bus, is the RAM.
     - **bus**: Development is currently occurring in this section.
         - **Crossbar**: Recently finished the crossbar. Will need to redo the test bench since it's rather confusing. Will probably build a hardware test first.
         - **Standard Bus**: This is the next target, a simple bus-based interconnect where only a single write-read interface pair can access to the bus.
