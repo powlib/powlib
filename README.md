@@ -8,18 +8,18 @@ This section will briefly describe some of the future additions to this library,
 
 Currently, the next task is to build a hardware test for the crossbar. The standard bus will be implemented afterward.
 
-- **tcf**: Test case files will be added as more IP gets added.
+- **tcf**: Test case files will be added as more IP gets added. 
 - **sim**: The simulation library will continue to be developed.
 - **hdl**: The HDL library will continue to be developed.
     - **std**: Probably going to call it quits with what is already here, but make small changes and additions will be made as they become needed. 
     - **fifo**: Created my own implementations of fifos. Future implementations will be added in the future.
-        - **Synchronous**: A simple fifo that assumes writing and reading interfaces share the same clock domain. This is pretty much complete, though different implementations will be explored in the future.
-        - **Asynchronous**: A fifo that's built to allow clock domain crossings. It utilizes the typical gray-coding and flip-flop synchronization to safely cross the fifo's pointers. Similar to the synchronous, it's done though in the future other implementations will be explored.
+        - **Synchronous**: A simple fifo that assumes writing and reading interfaces share the same clock domain. Recently changed such that block RAM is inferred.
+        - **Asynchronous**: A fifo that's built to allow clock domain crossings. It utilizes the typical gray-coding and flip-flop synchronization to safely cross the fifo's pointers. Recently changed such that block RAM is inferred.
         - **Swiss**: My swiss fifo combines the pipe and both fifos into a single, convenient module. In effort not to over complicate it, this will likely be left alone.
     - **ip**: Defined the powlib bus interface.
         - **ipram**: RAM accessible through the powlib bus interface.
         - **ipmaxi**: Converts the powlib bus interface to the Master AXI interface.
-        - **ipsaxi**: This is the next IP that will need to be created to complete the hardware testbench for the crossbar.
+        - **ipsaxi**: Converts the Slave AXI interface to the powlib bus interface.
     - **bus**: Development is currently occurring in this section.
         - **Crossbar**: Recently finished the crossbar. Will need to redo the test bench since it's rather confusing. Will probably build a hardware test first.
         - **Standard Bus**: This is the next target, a simple bus-based interconnect where only a single write-read interface pair can access to the bus.
