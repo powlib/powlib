@@ -53,6 +53,8 @@ Downloading this repo will not include the repos the submodules refer to as part
 git clone https://github.com/powlib/powlib.git --recursive
 ````
 
+It is worth noting simply downloading the release through GitHub will not include the submodules.
+
 # Contact
 
 Author: Andrew Powell
