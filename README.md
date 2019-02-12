@@ -6,7 +6,7 @@ This repo consists of the submodules that define the powlib library. The major c
 
 This section will briefly describe some of the future additions to this library, including some of the major plans. The descriptions will also change as time goes.
 
-Currently, the next task is to build a hardware test for the crossbar. The standard bus will be implemented afterward.
+I plan on working on my implementation of a contention-free NoC---basically, a simple NoC that utilizes a TDM-based arbitration to ensure deterministic throughput and latency,
 
 - **tcf**: Test case files will be added as more IP gets added. 
 - **sim**: The simulation library will continue to be developed.
@@ -20,10 +20,10 @@ Currently, the next task is to build a hardware test for the crossbar. The stand
         - **ipram**: RAM accessible through the powlib bus interface.
         - **ipmaxi**: Converts the powlib bus interface to the Master AXI interface.
         - **ipsaxi**: Converts the Slave AXI interface to the powlib bus interface.
-    - **bus**: Development is currently occurring in this section.
-        - **Crossbar**: Recently finished the crossbar. Will need to redo the test bench since it's rather confusing. Will probably build a hardware test first.
-        - **Standard Bus**: This is the next target, a simple bus-based interconnect where only a single write-read interface pair can access to the bus.
-    - **noc**: The ultimate goal is to start implement network-on-chip (noc) interconnect architectures suitable for FPGAs and compare them to standard bus-based interconencts.
+    - **bus**: Defines some of the common interconnect architectures.
+        - **Crossbar**: Pipelined crossbar that utilizes the powlib bus interface.
+        - **Standard Bus**: Will put this on hold so that I can get a head start on the TDM-based NoC.
+    - **noc**: The ultimate goal is to start implementing Network-on-Chip (NoC) interconnect architectures suitable for FPGAs and compare them to standard bus-based interconencts.
         - **noc_worm**: *best effort services (bes)* noc will be created, implementing wormhole style routing. 
         - **noc_tdm**: *guaranteed services (gs)* noc will be created, implementing time-division-multiplexing (tdm) style routing. Inspired by the Æthereal noc.
 
