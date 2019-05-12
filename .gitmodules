@@ -1,6 +1,6 @@
 [submodule "cocotb"]
 	path = cocotb
-	url = https://github.com/powlib/cocotb
+	url = https://github.com/potentialventures/cocotb
 [submodule "hdl"]
     path = hdl
     url = https://github.com/powlib/hdl
